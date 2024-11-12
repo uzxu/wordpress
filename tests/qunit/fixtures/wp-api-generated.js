@@ -8336,6 +8336,32 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/counts/(?P<post_type>[\\w-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "post_type": {
+                            "description": "An alphanumeric identifier for the post type.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/taxonomies": {
             "namespace": "wp/v2",
             "methods": [
