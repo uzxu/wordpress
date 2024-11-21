@@ -35,6 +35,7 @@
  *   - Subsequent sibling (`.sibling ~ .sibling`)
  * - Pseudo-element selectors (e.g. `::before`)
  * - Pseudo-class selectors (e.g. `:hover` or `:nth-child(2)`)
+ * - Namespace prefixes that need to be resolved (e.g. `svg|title` or `[xlink|href]`)
  *
  * @since TBD
  *
