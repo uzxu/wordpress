@@ -392,7 +392,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 				return true;
 			}
 
-			// > If the second and third code points are a valid escape, return true.
+			// > If the second and third code points are a valid escape… return true.
 			if ( self::next_two_are_valid_escape( $input, $after_initial_hyphen_minus_offset ) ) {
 				return true;
 			}
