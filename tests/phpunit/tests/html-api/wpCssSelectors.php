@@ -3,6 +3,7 @@
  * Unit tests covering WP_HTML_Processor functionality.
  *
  * @package WordPress
+ *
  * @subpackage HTML-API
  *
  * @since TBD
@@ -12,7 +13,9 @@
  * @coversDefaultClass WP_CSS_Selectors
  */
 class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
-
+	/**
+	 * Data provider.
+	 */
 	public static function data_valid_idents() {
 		return array(
 			'trailing #'              => array( '_-foo123#xyz', '_-foo123', '#xyz' ),
@@ -33,6 +36,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket TBD
+	 *
 	 * @dataProvider data_valid_idents
 	 */
 	public function test_valid_idents( string $input, string $result, string $rest ) {

@@ -1,13 +1,11 @@
 <?php
 /**
- * HTML API: WP_CSS_Selector class
+ * HTML API: WP_CSS_Selectors class
  *
  * @package WordPress
  * @subpackage HTML-API
  * @since TBD
  */
-
-use WordPressVIPMinimum\Sniffs\Security\StaticStrreplaceSniff;
 
 // phpcs:disable Generic.Files.OneObjectStructurePerFile.MultipleFound
 
