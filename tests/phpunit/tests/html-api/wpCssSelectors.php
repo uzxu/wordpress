@@ -24,7 +24,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'escaped ASCII character'            => array( '\\xyz', 'xyz', '' ),
 			'escaped space'                      => array( '\\ x', ' x', '' ),
 			'escaped emoji'                      => array( '\\😍', '😍', '' ),
-			'hex unicode codepoint'              => array( '\\abcd', 'ꯍ', '' ),
+			'hex unicode codepoint'              => array( '\\1f0a1', '🂡', '' ),
+			'HEX UNICODE CODEPOINT'              => array( '\\1D4B2', '𝒲', '' ),
 
 			'hex tab-suffixed 1'                 => array( "\\31\t23", '123', '' ),
 			'hex newline-suffixed 1'             => array( "\\31\n23", '123', '' ),
