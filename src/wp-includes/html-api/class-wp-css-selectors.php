@@ -383,7 +383,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 		// > U+002D HYPHEN-MINUS
 		if ( '-' === $input[ $offset ] ) {
 			$after_initial_hyphen_minus_offset = $offset + 1;
-			if ( $offset >= strlen( $input ) ) {
+			if ( $after_initial_hyphen_minus_offset >= strlen( $input ) ) {
 				return false;
 			}
 
