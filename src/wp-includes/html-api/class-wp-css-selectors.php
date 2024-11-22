@@ -353,7 +353,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 			'_' === $input[ $offset ] ||
 			( 'a' <= $input[ $offset ] && $input[ $offset ] <= 'z' ) ||
 			( 'A' <= $input[ $offset ] && $input[ $offset ] <= 'Z' ) ||
-			$input[ $offset ] <= '\x7F'
+			$input[ $offset ] > '\x7F'
 		);
 	}
 
