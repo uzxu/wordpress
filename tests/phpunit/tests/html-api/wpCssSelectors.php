@@ -15,19 +15,20 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 
 	public static function data_valid_idents() {
 		return array(
-			array( '_-foo123#xyz', '_-foo123', '#xyz' ),
-			array( '😍foo123.xyz', '😍foo123', '.xyz' ),
-			array( '\\xyz', 'xyz', '' ),
-			array( '\\ x', ' x', '' ),
-			array( '\\😍', '😍', '' ),
-			array( '\\abcd', 'ꯍ', '' ),
+			'trailing #'              => array( '_-foo123#xyz', '_-foo123', '#xyz' ),
+			'trailing .'              => array( '😍foo123.xyz', '😍foo123', '.xyz' ),
+			'trailing " "'            => array( '😍foo123 more', '😍foo123', ' more' ),
+			'escaped ASCII character' => array( '\\xyz', 'xyz', '' ),
+			'escaped space'           => array( '\\ x', ' x', '' ),
+			'escaped emoji'           => array( '\\😍', '😍', '' ),
+			'hex unicode codepoint'   => array( '\\abcd', 'ꯍ', '' ),
 
-			array( "\\31\t23", '123', '' ),
-			array( "\\31\n23", '123', '' ),
-			array( "\\31 23", '123', '' ),
-			array( '\\9', "\t", '' ),
-			array( '\\61 bc', 'abc', '' ),
-			array( '\\000061bc', 'abc', '' ),
+			'hex tab-suffixed 1'      => array( "\\31\t23", '123', '' ),
+			'hex newline-suffixed 1'  => array( "\\31\n23", '123', '' ),
+			'hex space-suffixed 1'    => array( "\\31 23", '123', '' ),
+			'hex tab'                 => array( '\\9', "\t", '' ),
+			'hex a'                   => array( '\\61 bc', 'abc', '' ),
+			'hex a max escape length' => array( '\\000061bc', 'abc', '' ),
 		);
 	}
 
@@ -44,7 +45,7 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 
 		$offset = 0;
 		$ident  = $c::test( $input, $offset );
-		$this->assertSame( $ident, $result );
-		$this->assertSame( substr( $input, $offset ), $rest );
+		$this->assertSame( $ident, $result, 'Ident did not match.' );
+		$this->assertSame( substr( $input, $offset ), $rest, 'Offset was not updated correctly.' );
 	}
 }
