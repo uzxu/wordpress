@@ -194,6 +194,8 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 
 		while ( $offset < strlen( $input ) ) {
 			if ( self::next_two_are_valid_escape( $input, $offset ) ) {
+				// Move past the `\` character.
+				++$offset;
 				$ident .= self::consume_escaped_codepoint( $input, $offset );
 				continue;
 			} elseif ( self::is_ident_codepoint( $input, $offset ) ) {
@@ -230,20 +232,19 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 * >   Return the current input code point.
 	 */
 	protected static function consume_escaped_codepoint( $input, &$offset ): ?string {
-		$char = $input[ $offset ];
 		if (
-			( '0' <= $char && $char <= '9' ) ||
-			( 'a' <= $char && $char <= 'f' ) ||
-			( 'A' <= $char && $char <= 'F' )
+			( '0' <= $input[ $offset ] && $input[ $offset ] <= '9' ) ||
+			( 'a' <= $input[ $offset ] && $input[ $offset ] <= 'f' ) ||
+			( 'A' <= $input[ $offset ] && $input[ $offset ] <= 'F' )
 		) {
 			$hex_end_offset = $offset + 1;
 			while (
 				strlen( $input ) > $hex_end_offset &&
 				$hex_end_offset - $offset < 6 &&
 			(
-			( '0' <= $char && $char <= '9' ) ||
-			( 'a' <= $char && $char <= 'f' ) ||
-			( 'A' <= $char && $char <= 'F' )
+			( '0' <= $input[ $hex_end_offset ] && $input[ $hex_end_offset ] <= '9' ) ||
+			( 'a' <= $input[ $hex_end_offset ] && $input[ $hex_end_offset ] <= 'f' ) ||
+			( 'A' <= $input[ $hex_end_offset ] && $input[ $hex_end_offset ] <= 'F' )
 			)
 			) {
 				$hex_end_offset += 1;
@@ -259,7 +260,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 			$codepoint_char = (
 				0 === $codepoint_value ||
 				$codepoint_value > self::UTF8_MAX_CODEPOINT_VALUE ||
-				( 0xD800 <= $codepoint_value || $codepoint_value <= 0xDFFF )
+				( 0xD800 <= $codepoint_value && $codepoint_value <= 0xDFFF )
 			) ?
 				"\u{FFFD}" :
 				mb_chr( $codepoint_value, 'UTF-8' );
