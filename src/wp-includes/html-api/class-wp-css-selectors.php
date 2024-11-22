@@ -230,25 +230,9 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 * >   Return the current input code point.
 	 */
 	protected static function consume_escaped_codepoint( $input, &$offset ): ?string {
-		if (
-			( '0' <= $input[ $offset ] && $input[ $offset ] <= '9' ) ||
-			( 'a' <= $input[ $offset ] && $input[ $offset ] <= 'f' ) ||
-			( 'A' <= $input[ $offset ] && $input[ $offset ] <= 'F' )
-		) {
-			$hex_end_offset = $offset + 1;
-			while (
-				strlen( $input ) > $hex_end_offset &&
-				$hex_end_offset - $offset < 6 &&
-			(
-			( '0' <= $input[ $hex_end_offset ] && $input[ $hex_end_offset ] <= '9' ) ||
-			( 'a' <= $input[ $hex_end_offset ] && $input[ $hex_end_offset ] <= 'f' ) ||
-			( 'A' <= $input[ $hex_end_offset ] && $input[ $hex_end_offset ] <= 'F' )
-			)
-			) {
-				$hex_end_offset += 1;
-			}
-
-			$codepoint_value = hexdec( substr( $input, $offset, $hex_end_offset - $offset ) );
+		$hex_length = strspn( $input, '0123456789abcdefABCDEF', $offset, 6 );
+		if ( $hex_length > 0 ) {
+			$codepoint_value = hexdec( substr( $input, $offset, $hex_length ) );
 
 			// > A surrogate is a leading surrogate or a trailing surrogate.
 			// > A leading surrogate is a code point that is in the range U+D800 to U+DBFF, inclusive.
@@ -263,7 +247,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 				"\u{FFFD}" :
 				mb_chr( $codepoint_value, 'UTF-8' );
 
-			$offset = $hex_end_offset;
+			$offset += $hex_length;
 
 			// If the next input code point is whitespace, consume it as well.
 			if (
