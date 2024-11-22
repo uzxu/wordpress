@@ -119,13 +119,13 @@ interface IWP_CSS_Selector_Parser {
 	/**
 	 * @return static|null
 	 */
-	public static function parse( string $input, string &$offset );
+	public static function parse( string $input, int &$offset );
 }
 
 abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	const UTF8_MAX_CODEPOINT_VALUE = 0x10FFFF;
 
-	protected static function parse_whitespace( string $input, string &$offset ): bool {
+	protected static function parse_whitespace( string $input, int &$offset ): bool {
 		$length   = strspn( $input, " \t\r\n\f", $offset );
 		$advanced = $length > 0;
 		$offset  += $length;
@@ -147,7 +147,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 *
 	 * This implementation is not interested in the <delim-token>, a '#' delim token is not relevant for selectors.
 	 */
-	protected static function parse_hash_token( string $input, string &$offset ): ?string {
+	protected static function parse_hash_token( string $input, int &$offset ): ?string {
 		if ( $offset + 1 >= strlen( $input ) || '#' !== $input[ $offset ] ) {
 			return null;
 		}
@@ -183,7 +183,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 *
 	 * https://www.w3.org/TR/css-syntax-3/#consume-name
 	 */
-	protected static function parse_ident( string $input, string &$offset ): ?string {
+	protected static function parse_ident( string $input, int &$offset ): ?string {
 		if ( ! self::check_if_three_code_points_would_start_an_ident_sequence( $input, $offset ) ) {
 			return null;
 		}
@@ -307,7 +307,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 *
 	 * @todo this does not check whether the second codepoint is valid.
 	 */
-	protected static function next_two_are_valid_escape( string $input, string $offset ): bool {
+	protected static function next_two_are_valid_escape( string $input, int $offset ): bool {
 		if ( $offset + 1 >= strlen( $input ) ) {
 			return false;
 		}
@@ -326,7 +326,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 * > non-ASCII code point
 	 * >   A code point with a value equal to or greater than U+0080 <control>.
 	 */
-	protected static function is_ident_start_codepoint( string $input, string $offset ): bool {
+	protected static function is_ident_start_codepoint( string $input, int $offset ): bool {
 		if ( $offset >= strlen( $input ) ) {
 			return false;
 		}
@@ -345,7 +345,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 * > digit
 	 * >   A code point between U+0030 DIGIT ZERO (0) and U+0039 DIGIT NINE (9) inclusive.
 	 */
-	protected static function is_ident_codepoint( string $input, string $offset ): bool {
+	protected static function is_ident_codepoint( string $input, int $offset ): bool {
 		return '-' === $input[ $offset ] ||
 			( '0' <= $input[ $offset ] && $input[ $offset ] <= '9' ) ||
 			self::is_ident_start_codepoint( $input, $offset );
@@ -370,7 +370,7 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 *
 	 * https://www.w3.org/TR/css-syntax-3/#would-start-an-identifier
 	 */
-	protected static function check_if_three_code_points_would_start_an_ident_sequence( string $input, string $offset ): bool {
+	protected static function check_if_three_code_points_would_start_an_ident_sequence( string $input, int $offset ): bool {
 		if ( $offset >= strlen( $input ) ) {
 			return false;
 		}
@@ -422,7 +422,7 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
 		$this->ident = $ident;
 	}
 
-	public static function parse( string $input, string &$offset ): ?self {
+	public static function parse( string $input, int &$offset ): ?self {
 		$ident = self::parse_hash_token( $input, $offset );
 		if ( null === $ident ) {
 			return null;

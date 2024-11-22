@@ -42,7 +42,7 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	 */
 	public function test_valid_idents( string $input, string $result, string $rest ) {
 		$c = new class() extends WP_CSS_Selector_Parser {
-			public static function parse( string $input, string &$offset ) {}
+			public static function parse( string $input, int &$offset ) {}
 			public static function test( string $input, &$offset ) {
 				return self::parse_ident( $input, $offset );
 			}
