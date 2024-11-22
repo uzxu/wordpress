@@ -117,23 +117,6 @@ class WP_CSS_Selectors {
 	}
 }
 
-final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
-	/** @var string */
-	public $ident;
-
-	private function __construct( string $ident ) {
-		$this->ident = $ident;
-	}
-
-	public static function parse( string $input, string &$offset ): ?self {
-		$ident = self::parse_hash_token( $input, $offset );
-		if ( null === $ident ) {
-			return null;
-		}
-		return new self( $ident );
-	}
-}
-
 interface IWP_CSS_Selector_Parser {
 	/**
 	 * @return static|null
@@ -429,5 +412,22 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 		// > anything else
 		// >   Return false.
 		return self::is_ident_start_codepoint( $input, $offset );
+	}
+}
+
+final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
+	/** @var string */
+	public $ident;
+
+	private function __construct( string $ident ) {
+		$this->ident = $ident;
+	}
+
+	public static function parse( string $input, string &$offset ): ?self {
+		$ident = self::parse_hash_token( $input, $offset );
+		if ( null === $ident ) {
+			return null;
+		}
+		return new self( $ident );
 	}
 }
