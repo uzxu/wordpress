@@ -443,9 +443,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		wp_after_insert_post( $attachment, true, $attachment_before );
 
 		$response = $this->prepare_item_for_response( $attachment, $request );
-		$response = rest_ensure_response( $response );
 
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -457,11 +456,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
 	 */
 	public function post_process_item( $request ) {
-		switch ( $request['action'] ) {
-			case 'create-image-subsizes':
-				require_once ABSPATH . 'wp-admin/includes/image.php';
-				wp_update_image_subsizes( $request['id'] );
-				break;
+		if ( 'create-image-subsizes' === $request['action'] ) {
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			wp_update_image_subsizes( $request['id'] );
 		}
 
 		$request['context'] = 'edit';
@@ -567,7 +564,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				);
 			}
 
-			if ( 0 === count( $modifiers ) ) {
+			if ( array() === $modifiers ) {
 				return new WP_Error(
 					'rest_image_not_edited',
 					__( 'The image was not edited. Edit the image before applying the changes.' ),
@@ -722,7 +719,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$new_image_meta = wp_generate_attachment_metadata( $new_attachment_id, $saved['path'] );
 
 		// Copy the EXIF metadata from the original attachment if not generated for the edited image.
-		if ( isset( $image_meta['image_meta'] ) && isset( $new_image_meta['image_meta'] ) && is_array( $new_image_meta['image_meta'] ) ) {
+		if ( isset( $image_meta['image_meta'], $new_image_meta['image_meta'] ) && is_array( $new_image_meta['image_meta'] ) ) {
 			// Merge but skip empty values.
 			foreach ( (array) $image_meta['image_meta'] as $key => $value ) {
 				if ( empty( $new_image_meta['image_meta'][ $key ] ) && ! empty( $value ) ) {
@@ -1142,7 +1139,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'type'     => $type,
 		);
 
-		$size_check = self::check_upload_size( $file_data );
+		$size_check = $this->check_upload_size( $file_data );
 		if ( is_wp_error( $size_check ) ) {
 			return $size_check;
 		}
@@ -1310,7 +1307,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$overrides['action'] = 'wp_handle_mock_upload';
 		}
 
-		$size_check = self::check_upload_size( $files['file'] );
+		$size_check = $this->check_upload_size( $files['file'] );
 		if ( is_wp_error( $size_check ) ) {
 			return $size_check;
 		}

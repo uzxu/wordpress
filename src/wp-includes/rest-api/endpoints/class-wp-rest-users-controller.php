@@ -455,7 +455,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				__( 'Sorry, you are not allowed to list users.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
-		} elseif ( ! count_user_posts( $user->ID, $types ) && ! current_user_can( 'edit_user', $user->ID ) && ! current_user_can( 'list_users' ) ) {
+		}
+
+		if ( ! count_user_posts( $user->ID, $types ) && ! current_user_can( 'edit_user', $user->ID ) && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error(
 				'rest_user_cannot_view',
 				__( 'Sorry, you are not allowed to list users.' ),
@@ -480,10 +482,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return $user;
 		}
 
-		$user     = $this->prepare_item_for_response( $user, $request );
-		$response = rest_ensure_response( $user );
+		$user = $this->prepare_item_for_response( $user, $request );
 
-		return $response;
+		return rest_ensure_response( $user );
 	}
 
 	/**
@@ -507,9 +508,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$user     = wp_get_current_user();
 		$response = $this->prepare_item_for_response( $user, $request );
-		$response = rest_ensure_response( $response );
 
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -812,9 +812,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		do_action( 'rest_after_insert_user', $user, $request, false );
 
 		$response = $this->prepare_item_for_response( $user, $request );
-		$response = rest_ensure_response( $response );
 
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -896,7 +895,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$id       = $user->ID;
 		$reassign = false === $request['reassign'] ? null : absint( $request['reassign'] );
-		$force    = isset( $request['force'] ) ? (bool) $request['force'] : false;
+		$force    = isset( $request['force'] ) && $request['force'];
 
 		// We don't support trashing for users.
 		if ( ! $force ) {
@@ -908,14 +907,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $reassign ) ) {
-			if ( $reassign === $id || ! get_userdata( $reassign ) ) {
-				return new WP_Error(
-					'rest_user_invalid_reassign',
-					__( 'Invalid user ID for reassignment.' ),
-					array( 'status' => 400 )
-				);
-			}
+		if ( ! empty( $reassign )
+			&& ( $reassign === $id || ! get_userdata( $reassign ) )
+		) {
+			return new WP_Error(
+				'rest_user_invalid_reassign',
+				__( 'Invalid user ID for reassignment.' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		$request->set_param( 'context', 'edit' );

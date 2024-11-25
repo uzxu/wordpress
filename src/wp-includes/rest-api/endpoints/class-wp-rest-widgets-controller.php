@@ -328,11 +328,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( $request->has_param( 'sidebar' ) ) {
-			if ( $sidebar_id !== $request['sidebar'] ) {
-				$sidebar_id = $request['sidebar'];
-				wp_assign_widget_to_sidebar( $widget_id, $sidebar_id );
-			}
+		if ( $request->has_param( 'sidebar' )
+			&& $sidebar_id !== $request['sidebar']
+		) {
+			$sidebar_id = $request['sidebar'];
+			wp_assign_widget_to_sidebar( $widget_id, $sidebar_id );
 		}
 
 		$request['context'] = 'edit';
@@ -690,9 +690,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			'instance'      => null,
 		);
 
-		if (
-			rest_is_field_included( 'rendered', $fields ) &&
-			'wp_inactive_widgets' !== $sidebar_id
+		if ( 'wp_inactive_widgets' !== $sidebar_id
+			&& rest_is_field_included( 'rendered', $fields )
 		) {
 			$prepared['rendered'] = trim( wp_render_widget( $widget_id, $sidebar_id ) );
 		}
