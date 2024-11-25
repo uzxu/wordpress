@@ -152,12 +152,16 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 			return null;
 		}
 
-		$offset_after_hash = $offset + 1;
-		if ( self::check_if_three_code_points_would_start_an_ident_sequence( $input, $offset_after_hash ) ) {
-			$offset = $offset_after_hash;
-			return self::parse_ident( $input, $offset );
+		$updated_offset = $offset + 1;
+		$result         = self::parse_ident( $input, $updated_offset );
+
+		if ( null === $result ) {
+			return null;
+			$offset = $updated_offset;
 		}
-		return null;
+
+		$offset = $updated_offset;
+		return $result;
 	}
 
 	/**
