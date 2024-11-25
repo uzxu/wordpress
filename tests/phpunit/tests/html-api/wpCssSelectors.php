@@ -48,6 +48,7 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'can start with --1anything'         => array( '--1anything', '--1anything', '' ),
 			'can start with -\31 23'             => array( '-\31 23', '-123', '' ),
 			'can start with --\31 23'            => array( '--\31 23', '--123', '' ),
+			'ident ends before ]'                => array( 'ident]', 'ident', ']' ),
 
 			// Invalid
 			'bad start >'                        => array( '>ident' ),
@@ -57,6 +58,28 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'bad start 1'                        => array( '1ident' ),
 			'bad start -1'                       => array( '-1ident' ),
 		);
+	}
+
+	/**
+	 * @ticket TBD
+	 */
+	public function test_is_ident_and_is_ident_start() {
+		$c = new class() extends WP_CSS_Selector_Parser {
+			public static function parse( string $input, int &$offset ) {}
+
+			public static function test_is_ident( string $input, int $offset ) {
+				return self::is_ident_codepoint( $input, $offset );
+			}
+
+			public static function test_is_ident_start( string $input, int $offset ) {
+				return self::is_ident_start_codepoint( $input, $offset );
+			}
+		};
+
+		$this->assertFalse( $c::test_is_ident( '[', 0 ) );
+		$this->assertFalse( $c::test_is_ident( ']', 0 ) );
+		$this->assertFalse( $c::test_is_ident_start( '[', 0 ) );
+		$this->assertFalse( $c::test_is_ident_start( ']', 0 ) );
 	}
 
 	/**
