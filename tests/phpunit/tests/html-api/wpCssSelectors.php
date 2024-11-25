@@ -78,7 +78,7 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			$this->assertNull( $result );
 		} else {
 			$this->assertSame( $expected, $result, 'Ident did not match.' );
-			$this->assertSame( substr( $input, $offset ), $rest, 'Offset was not updated correctly.' );
+			$this->assertSame( $rest, substr( $input, $offset ), 'Offset was not updated correctly.' );
 		}
 	}
 
@@ -93,8 +93,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 		if ( null === $expected ) {
 			$this->assertNull( $result );
 		} else {
-			$this->assertSame( $result->ident, $expected );
-			$this->assertSame( substr( $input, $offset ), $rest );
+			$this->assertSame( $expected, $result->ident );
+			$this->assertSame( $rest, substr( $input, $offset ) );
 		}
 	}
 
@@ -127,8 +127,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 		if ( null === $expected ) {
 			$this->assertNull( $result );
 		} else {
-			$this->assertSame( $result->ident, $expected );
-			$this->assertSame( substr( $input, $offset ), $rest );
+			$this->assertSame( $expected, $result->ident );
+			$this->assertSame( $rest, substr( $input, $offset ) );
 		}
 	}
 
@@ -161,8 +161,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 		if ( null === $expected ) {
 			$this->assertNull( $result );
 		} else {
-			$this->assertSame( $result->ident, $expected );
-			$this->assertSame( substr( $input, $offset ), $rest );
+			$this->assertSame( $expected, $result->ident );
+			$this->assertSame( $rest, substr( $input, $offset ) );
 		}
 	}
 
@@ -203,11 +203,11 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 		if ( null === $expected_name ) {
 			$this->assertNull( $result );
 		} else {
-			$this->assertSame( $result->name, $expected_name );
-			$this->assertSame( $result->matcher, $expected_matcher );
-			$this->assertSame( $result->value, $expected_value );
-			$this->assertSame( $result->modifier, $expected_modifier );
-			$this->assertSame( substr( $input, $offset ), $rest );
+			$this->assertSame( $expected_name, $result->name );
+			$this->assertSame( $expected_matcher, $result->matcher );
+			$this->assertSame( $expected_value, $result->value );
+			$this->assertSame( $expected_modifier, $result->modifier );
+			$this->assertSame( $rest, substr( $input, $offset ) );
 		}
 	}
 
