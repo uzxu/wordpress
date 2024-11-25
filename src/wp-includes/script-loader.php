@@ -1689,9 +1689,7 @@ function wp_default_styles( $styles ) {
 		 */
 		'wp-reset-editor-styles',
 		'wp-block-library',
-		'wp-reusable-blocks',
 		'wp-block-editor-content',
-		'wp-patterns',
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
@@ -1752,7 +1750,6 @@ function wp_default_styles( $styles ) {
 			'wp-block-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
-			'wp-reusable-blocks',
 			'wp-patterns',
 			'wp-preferences',
 		),
@@ -1761,7 +1758,6 @@ function wp_default_styles( $styles ) {
 			'wp-block-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
-			'wp-reusable-blocks',
 			'wp-patterns',
 			'wp-preferences',
 		),
