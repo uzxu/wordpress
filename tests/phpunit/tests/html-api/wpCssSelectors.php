@@ -149,4 +149,39 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'not valid .1foo'             => array( '.1foo' ),
 		);
 	}
+
+	/**
+	 * @ticket TBD
+	 *
+	 * @dataProvider data_type_selectors
+	 */
+	public function test_parse_type( string $input, ?string $expected = null, ?string $rest = null ) {
+		$offset = 0;
+		$result = WP_CSS_Type_Selector::parse( $input, $offset );
+		if ( null === $expected ) {
+			$this->assertNull( $result );
+		} else {
+			$this->assertSame( $result->ident, $expected );
+			$this->assertSame( substr( $input, $offset ), $rest );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_type_selectors(): array {
+		return array(
+			'any *'          => array( '* .class', '*', ' .class' ),
+			'a'              => array( 'a', 'a', '' ),
+			'div.class'      => array( 'div.class', 'div', '.class' ),
+			'custom-type#id' => array( 'custom-type#id', 'custom-type', '#id' ),
+
+			// invalid
+			'#id'            => array( '#id' ),
+			'.class'         => array( '.class' ),
+			'[attr]'         => array( '[attr]' ),
+		);
+	}
 }
