@@ -414,3 +414,29 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
 		return new self( $ident );
 	}
 }
+
+final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
+	/** @var string */
+	public $ident;
+
+	private function __construct( string $ident ) {
+		$this->ident = $ident;
+	}
+
+	public static function parse( string $input, int &$offset ): ?self {
+		if ( $offset + 1 >= strlen( $input ) || '.' !== $input[ $offset ] ) {
+			return null;
+		}
+
+		$updated_offset = $offset + 1;
+		$result         = self::parse_ident( $input, $updated_offset );
+
+		if ( null === $result ) {
+			return null;
+			$offset = $updated_offset;
+		}
+
+		$offset = $updated_offset;
+		return new self( $result );
+	}
+}
