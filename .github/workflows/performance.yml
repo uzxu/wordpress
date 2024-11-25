@@ -33,7 +33,7 @@ jobs:
   # Runs the performance test suite.
   performance:
     name: Performance tests ${{ matrix.memcached && '(with memcached)' || '' }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-performance.yml@trunk
+    uses: ./.github/workflows/reusable-performance.yml
     permissions:
       contents: read
     if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
@@ -48,7 +48,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
