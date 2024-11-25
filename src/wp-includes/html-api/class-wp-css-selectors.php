@@ -457,3 +457,46 @@ final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
 		return new self( $result );
 	}
 }
+
+final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser {
+	/**
+	 * @var string
+	 *
+	 * The type identifier string or '*'.
+	 */
+	public $ident;
+
+	private function __construct( string $ident ) {
+		$this->ident = $ident;
+	}
+
+	/**
+	 * Parse a type selector
+	 *
+	 * > <type-selector> = <wq-name> | <ns-prefix>? '*'
+	 * > <ns-prefix> = [ <ident-token> | '*' ]? '|'
+	 * > <wq-name> = <ns-prefix>? <ident-token>
+	 *
+	 * Namespaces (e.g. |div, *|div, or namespace|div) are not supported,
+	 * so this selector effectively matches * or ident.
+	 *
+	 * https://www.w3.org/TR/selectors/#grammar
+	 */
+	public static function parse( string $input, int &$offset ): ?self {
+		if ( $offset >= strlen( $input ) ) {
+			return false;
+		}
+
+		if ( '*' === $input[ $offset ] ) {
+			++$offset;
+			return new self( '*' );
+		}
+
+		$result = self::parse_ident( $input, $offset );
+		if ( null === $result ) {
+			return null;
+		}
+
+		return new self( $result );
+	}
+}
