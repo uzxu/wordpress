@@ -410,6 +410,13 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
 		$this->ident = $ident;
 	}
 
+	/**
+	 * Parse an ID selector
+	 *
+	 * > <id-selector> = <hash-token>
+	 *
+	 * https://www.w3.org/TR/selectors/#grammar
+	 */
 	public static function parse( string $input, int &$offset ): ?self {
 		$ident = self::parse_hash_token( $input, $offset );
 		if ( null === $ident ) {
@@ -427,6 +434,13 @@ final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
 		$this->ident = $ident;
 	}
 
+	/**
+	 * Parse a class selector
+	 *
+	 * > <class-selector> = '.' <ident-token>
+	 *
+	 * https://www.w3.org/TR/selectors/#grammar
+	 */
 	public static function parse( string $input, int &$offset ): ?self {
 		if ( $offset + 1 >= strlen( $input ) || '.' !== $input[ $offset ] ) {
 			return null;
@@ -437,7 +451,6 @@ final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
 
 		if ( null === $result ) {
 			return null;
-			$offset = $updated_offset;
 		}
 
 		$offset = $updated_offset;
