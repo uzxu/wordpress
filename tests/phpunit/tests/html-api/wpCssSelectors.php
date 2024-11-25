@@ -184,4 +184,69 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'[attr]'         => array( '[attr]' ),
 		);
 	}
+
+	/**
+	 * @ticket TBD
+	 *
+	 * @dataProvider data_attribute_selectors
+	 */
+	public function test_parse_attribute(
+		string $input,
+		?string $expected_name = null,
+		?string $expected_matcher = null,
+		?string $expected_value = null,
+		?string $expected_modifier = null,
+		?string $rest = null
+	) {
+		$offset = 0;
+		$result = WP_CSS_Attribute_Selector::parse( $input, $offset );
+		if ( null === $expected_name ) {
+			$this->assertNull( $result );
+		} else {
+			$this->assertSame( $result->name, $expected_name );
+			$this->assertSame( $result->matcher, $expected_matcher );
+			$this->assertSame( $result->value, $expected_value );
+			$this->assertSame( $result->modifier, $expected_modifier );
+			$this->assertSame( substr( $input, $offset ), $rest );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_attribute_selectors(): array {
+		return array(
+			array( '[href]', 'href', null, null, null, '' ),
+			array( '[href] type', 'href', null, null, null, ' type' ),
+			array( '[href]#id', 'href', null, null, null, '#id' ),
+			array( '[href].class', 'href', null, null, null, '.class' ),
+			array( '[href][href2]', 'href', null, null, null, '[href2]' ),
+			array( "[\n href\t\r]", 'href', null, null, null, '' ),
+			array( '[href=foo]', 'href', WP_CSS_Attribute_Selector::MATCH_EXACT, 'foo', null, '' ),
+			array( "[href \n =   bar   ]", WP_CSS_Attribute_Selector::MATCH_EXACT, 'bar', null, '' ),
+			array( "[href \n ^=   baz   ]", WP_CSS_Attribute_Selector::MATCH_PREFIXED_BY, 'bar', null, '' ),
+			array( '[match $= insensitive i]', WP_CSS_Attribute_Selector::MATCH_SUFFIXED_BY, 'insensitive', WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE, '' ),
+			array( '[match|=sensitive s]', WP_CSS_Attribute_Selector::MATCH_EXACT_OR_EXACT_WITH_HYPHEN, 'sensitive', WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE, '' ),
+			array( '[match="quoted[][]"]', WP_CSS_Attribute_Selector::MATCH_EXACT_OR_EXACT_WITH_HYPHEN, 'quoted[][]', null, '' ),
+			array( "[match='quoted!{}']", WP_CSS_Attribute_Selector::MATCH_EXACT_OR_EXACT_WITH_HYPHEN, 'quoted!{}', null, '' ),
+			array( "[match*='quoted's]", WP_CSS_Attribute_Selector::MATCH_EXACT_OR_EXACT_WITH_HYPHEN, 'quoted', WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE, '' ),
+
+			// Invalid
+			array( 'foo' ),
+			array( '[foo' ),
+			array( '[#foo]' ),
+			array( '[*|*]' ),
+			array( '[ns|*]' ),
+			array( '[* |att]' ),
+			array( '[*| att]' ),
+			array( '[att * =]' ),
+			array( '[att * =]' ),
+			array( '[att i]' ),
+			array( '[att s]' ),
+			array( '[att="val" I]' ),
+			array( '[att="val" S]' ),
+		);
+	}
 }
