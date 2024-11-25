@@ -15,8 +15,10 @@
 class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	/**
 	 * Data provider.
+	 *
+	 * @return array
 	 */
-	public static function data_valid_idents() {
+	public static function data_idents(): array {
 		return array(
 			'trailing #'                         => array( '_-foo123#xyz', '_-foo123', '#xyz' ),
 			'trailing .'                         => array( '😍foo123.xyz', '😍foo123', '.xyz' ),
@@ -40,29 +42,23 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'leading surrogate max replacement'  => array( '\\dbff ', "\u{fffd}", '' ),
 			'trailing surrogate min replacement' => array( '\\dc00 ', "\u{fffd}", '' ),
 			'trailing surrogate max replacement' => array( '\\dfff ', "\u{fffd}", '' ),
-		);
-	}
 
-	/**
-	 * Data provider.
-	 */
-	public static function data_invalid_idents() {
-		return array(
-			'bad start >'   => array( '>' ),
-			'bad start ['   => array( '[' ),
-			'bad start #'   => array( '#' ),
-			'bad start " "' => array( ' ' ),
-			'bad start -'   => array( '-' ),
-			'bad start 1'   => array( '-' ),
+			// Invalid
+			'bad start >'                        => array( '>' ),
+			'bad start ['                        => array( '[' ),
+			'bad start #'                        => array( '#' ),
+			'bad start " "'                      => array( ' ' ),
+			'bad start -'                        => array( '-' ),
+			'bad start 1'                        => array( '-' ),
 		);
 	}
 
 	/**
 	 * @ticket TBD
 	 *
-	 * @dataProvider data_valid_idents
+	 * @dataProvider data_idents
 	 */
-	public function test_valid_idents( string $input, string $result, string $rest ) {
+	public function test_parse_ident( string $input, ?string $expected = null, ?string $rest = null ) {
 		$c = new class() extends WP_CSS_Selector_Parser {
 			public static function parse( string $input, int &$offset ) {}
 			public static function test( string $input, &$offset ) {
@@ -71,47 +67,37 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 		};
 
 		$offset = 0;
-		$ident  = $c::test( $input, $offset );
-		$this->assertSame( $ident, $result, 'Ident did not match.' );
-		$this->assertSame( substr( $input, $offset ), $rest, 'Offset was not updated correctly.' );
-	}
-
-	/**
-	 * @ticket TBD
-	 *
-	 * @dataProvider data_invalid_idents
-	 */
-	public function test_invalid_idents( string $input ) {
-		$c = new class() extends WP_CSS_Selector_Parser {
-			public static function parse( string $input, int &$offset ) {}
-			public static function test( string $input, int &$offset ) {
-				return self::parse_ident( $input, $offset );
-			}
-		};
-
-		$offset = 0;
 		$result = $c::test( $input, $offset );
-		$this->assertNull( $result, 'Ident did not match.' );
-		$this->assertSame( 0, $offset, 'Offset was incorrectly adjusted.' );
-	}
-
-	/**
-	 * @ticket TBD
-	 *
-	 * @dataProvider data_ids
-	 */
-	public function test_parse_id( string $input, ?string $expected_id = null, ?string $rest = null ) {
-		$offset = 0;
-		$result = WP_CSS_ID_Selector::parse( $input, $offset );
-		if ( null === $expected_id ) {
+		if ( null === $expected ) {
 			$this->assertNull( $result );
 		} else {
-			$this->assertSame( $result->ident, $expected_id );
+			$this->assertSame( $expected, $result, 'Ident did not match.' );
+			$this->assertSame( substr( $input, $offset ), $rest, 'Offset was not updated correctly.' );
+		}
+	}
+
+	/**
+	 * @ticket TBD
+	 *
+	 * @dataProvider data_id_selectors
+	 */
+	public function test_parse_id( string $input, ?string $expected = null, ?string $rest = null ) {
+		$offset = 0;
+		$result = WP_CSS_ID_Selector::parse( $input, $offset );
+		if ( null === $expected ) {
+			$this->assertNull( $result );
+		} else {
+			$this->assertSame( $result->ident, $expected );
 			$this->assertSame( substr( $input, $offset ), $rest );
 		}
 	}
 
-	public static function data_ids(): array {
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_id_selectors(): array {
 		return array(
 			'valid #_-foo123'             => array( '#_-foo123', '_-foo123', '' ),
 			'valid #foo#bar'              => array( '#foo#bar', 'foo', '#bar' ),
@@ -119,8 +105,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'with descendant #\31 23 div' => array( '#\\31 23 div', '123', ' div' ),
 
 			'not ID foo'                  => array( 'foo' ),
+			'not ID .bar'                 => array( '.bar' ),
 			'not valid #1foo'             => array( '#1foo' ),
-			'not id .bar'                 => array( '.bar' ),
 		);
 	}
 }
