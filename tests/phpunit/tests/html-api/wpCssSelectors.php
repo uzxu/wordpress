@@ -109,4 +109,38 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'not valid #1foo'             => array( '#1foo' ),
 		);
 	}
+
+	/**
+	 * @ticket TBD
+	 *
+	 * @dataProvider data_class_selectors
+	 */
+	public function test_parse_class( string $input, ?string $expected = null, ?string $rest = null ) {
+		$offset = 0;
+		$result = WP_CSS_Class_Selector::parse( $input, $offset );
+		if ( null === $expected ) {
+			$this->assertNull( $result );
+		} else {
+			$this->assertSame( $result->ident, $expected );
+			$this->assertSame( substr( $input, $offset ), $rest );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_class_selectors(): array {
+		return array(
+			'valid ._-foo123'             => array( '._-foo123', '_-foo123', '' ),
+			'valid .foo.bar'              => array( '.foo.bar', 'foo', '.bar' ),
+			'escaped .\31 23'             => array( '.\\31 23', '123', '' ),
+			'with descendant .\31 23 div' => array( '.\\31 23 div', '123', ' div' ),
+
+			'not class foo'               => array( 'foo' ),
+			'not class #bar'              => array( '#bar' ),
+			'not valid .1foo'             => array( '.1foo' ),
+		);
+	}
 }
