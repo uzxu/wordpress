@@ -42,14 +42,20 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'leading surrogate max replacement'  => array( '\\dbff ', "\u{fffd}", '' ),
 			'trailing surrogate min replacement' => array( '\\dc00 ', "\u{fffd}", '' ),
 			'trailing surrogate max replacement' => array( '\\dfff ', "\u{fffd}", '' ),
+			'can start with -ident'              => array( '-ident', '-ident', '' ),
+			'can start with --anything'          => array( '--anything', '--anything', '' ),
+			'can start with ---anything'         => array( '--_anything', '--_anything', '' ),
+			'can start with --1anything'         => array( '--1anything', '--1anything', '' ),
+			'can start with -\31 23'             => array( '-\31 23', '-123', '' ),
+			'can start with --\31 23'            => array( '--\31 23', '--123', '' ),
 
 			// Invalid
-			'bad start >'                        => array( '>' ),
-			'bad start ['                        => array( '[' ),
-			'bad start #'                        => array( '#' ),
-			'bad start " "'                      => array( ' ' ),
-			'bad start -'                        => array( '-' ),
-			'bad start 1'                        => array( '-' ),
+			'bad start >'                        => array( '>ident' ),
+			'bad start ['                        => array( '[ident' ),
+			'bad start #'                        => array( '#ident' ),
+			'bad start " "'                      => array( ' ident' ),
+			'bad start 1'                        => array( '1ident' ),
+			'bad start -1'                       => array( '-1ident' ),
 		);
 	}
 
