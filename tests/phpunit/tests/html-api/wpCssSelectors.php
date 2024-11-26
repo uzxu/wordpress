@@ -49,12 +49,14 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'ident ends before ]'                => array( 'ident]', 'ident', ']' ),
 
 			// Invalid
-			'bad start >'                        => array( '>ident' ),
-			'bad start ['                        => array( '[ident' ),
-			'bad start #'                        => array( '#ident' ),
-			'bad start " "'                      => array( ' ident' ),
-			'bad start 1'                        => array( '1ident' ),
-			'bad start -1'                       => array( '-1ident' ),
+			'Invalid: (empty string)'            => array( '' ),
+			'Invalid: bad start >'               => array( '>ident' ),
+			'Invalid: bad start ['               => array( '[ident' ),
+			'Invalid: bad start #'               => array( '#ident' ),
+			'Invalid: bad start " "'             => array( ' ident' ),
+			'Invalid: bad start 1'               => array( '1ident' ),
+			'Invalid: bad start -1'              => array( '-1ident' ),
+			'Invalid: bad start -'               => array( '-' ),
 		);
 	}
 
@@ -133,28 +135,31 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	 */
 	public static function data_strings(): array {
 		return array(
-			'"foo"'                 => array( '"foo"', 'foo', '' ),
-			'"foo"after'            => array( '"foo"after', 'foo', 'after' ),
-			'"foo""two"'            => array( '"foo""two"', 'foo', '"two"' ),
-			'"foo"\'two\''          => array( '"foo"\'two\'', 'foo', "'two'" ),
+			'"foo"'                   => array( '"foo"', 'foo', '' ),
+			'"foo"after'              => array( '"foo"after', 'foo', 'after' ),
+			'"foo""two"'              => array( '"foo""two"', 'foo', '"two"' ),
+			'"foo"\'two\''            => array( '"foo"\'two\'', 'foo', "'two'" ),
 
-			"'foo'"                 => array( "'foo'", 'foo', '' ),
-			"'foo'after"            => array( "'foo'after", 'foo', 'after' ),
-			"'foo'\"two\""          => array( "'foo'\"two\"", 'foo', '"two"' ),
-			"'foo''two'"            => array( "'foo''two'", 'foo', "'two'" ),
+			"'foo'"                   => array( "'foo'", 'foo', '' ),
+			"'foo'after"              => array( "'foo'after", 'foo', 'after' ),
+			"'foo'\"two\""            => array( "'foo'\"two\"", 'foo', '"two"' ),
+			"'foo''two'"              => array( "'foo''two'", 'foo', "'two'" ),
 
-			"'foo\\nbar'"           => array( "'foo\\\nbar'", 'foobar', '' ),
-			"'foo\\31 23'"          => array( "'foo\\31 23'", 'foo123', '' ),
-			"'foo\\31\\n23'"        => array( "'foo\\31\n23'", 'foo123', '' ),
-			"'foo\\31\\t23'"        => array( "'foo\\31\t23'", 'foo123', '' ),
-			"'foo\\00003123'"       => array( "'foo\\00003123'", 'foo123', '' ),
+			"'foo\\nbar'"             => array( "'foo\\\nbar'", 'foobar', '' ),
+			"'foo\\31 23'"            => array( "'foo\\31 23'", 'foo123', '' ),
+			"'foo\\31\\n23'"          => array( "'foo\\31\n23'", 'foo123', '' ),
+			"'foo\\31\\t23'"          => array( "'foo\\31\t23'", 'foo123', '' ),
+			"'foo\\00003123'"         => array( "'foo\\00003123'", 'foo123', '' ),
+
+			"'foo\\"                  => array( "'foo\\", 'foo', '' ),
 
 			// Invalid
-			"Invalid: 'newline\\n'" => array( "'newline\n'" ),
-			'Invalid: foo'          => array( 'foo' ),
-			'Invalid: \\"'          => array( '\\"' ),
-			'Invalid: .foo'         => array( '.foo' ),
-			'Invalid: #foo'         => array( '#foo' ),
+			'Invalid: (empty string)' => array( '' ),
+			"Invalid: 'newline\\n'"   => array( "'newline\n'" ),
+			'Invalid: foo'            => array( 'foo' ),
+			'Invalid: \\"'            => array( '\\"' ),
+			'Invalid: .foo'           => array( '.foo' ),
+			'Invalid: #foo'           => array( '#foo' ),
 		);
 	}
 
@@ -249,15 +254,16 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	 */
 	public static function data_type_selectors(): array {
 		return array(
-			'any *'          => array( '* .class', '*', ' .class' ),
-			'a'              => array( 'a', 'a', '' ),
-			'div.class'      => array( 'div.class', 'div', '.class' ),
-			'custom-type#id' => array( 'custom-type#id', 'custom-type', '#id' ),
+			'any *'                   => array( '* .class', '*', ' .class' ),
+			'a'                       => array( 'a', 'a', '' ),
+			'div.class'               => array( 'div.class', 'div', '.class' ),
+			'custom-type#id'          => array( 'custom-type#id', 'custom-type', '#id' ),
 
-			// invalid
-			'#id'            => array( '#id' ),
-			'.class'         => array( '.class' ),
-			'[attr]'         => array( '[attr]' ),
+			// Invalid
+			'Invalid: (empty string)' => array( '' ),
+			'Invalid: #id'            => array( '#id' ),
+			'Invalid: .class'         => array( '.class' ),
+			'Invalid: [attr]'         => array( '[attr]' ),
 		);
 	}
 
@@ -313,6 +319,7 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'[escape-seq="\\31 23"]'   => array( "[escape-seq='\\31 23']", 'escape-seq', WP_CSS_Attribute_Selector::MATCH_EXACT, '123', null, '' ),
 
 			// Invalid
+			'Invalid: (empty string)'  => array( '' ),
 			'Invalid: foo'             => array( 'foo' ),
 			'Invalid: [foo'            => array( '[foo' ),
 			'Invalid: [#foo]'          => array( '[#foo]' ),
@@ -321,12 +328,14 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'Invalid: [* |att]'        => array( '[* |att]' ),
 			'Invalid: [*| att]'        => array( '[*| att]' ),
 			'Invalid: [att * =]'       => array( '[att * =]' ),
-			'Invalid: [att * =]'       => array( '[att * =]' ),
+			'Invalid: [att+=val]'      => array( '[att+=val]' ),
+			'Invalid: [att=val '       => array( '[att=val ' ),
 			'Invalid: [att i]'         => array( '[att i]' ),
 			'Invalid: [att s]'         => array( '[att s]' ),
 			'Invalid: [att="val" I]'   => array( '[att="val" I]' ),
 			'Invalid: [att="val" S]'   => array( '[att="val" S]' ),
 			"Invalid: [att='val\\n']"  => array( "[att='val\n']" ),
+			'Invalid: [att=val i '     => array( '[att=val i ' ),
 		);
 	}
 }
