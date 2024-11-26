@@ -212,6 +212,11 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 		return $ident;
 	}
 
+	// @todo stub
+	protected static function parse_string( string $input, int &$offset ): ?string {
+		return null;
+	}
+
 	/**
 	 * Consume an escaped code point.
 	 *
