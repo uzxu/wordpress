@@ -9,8 +9,6 @@
  * @since TBD
  *
  * @group html-api
- *
- * @coversDefaultClass WP_CSS_Selectors
  */
 class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	/**
@@ -62,6 +60,9 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 
 	/**
 	 * @ticket TBD
+	 *
+	 * @covers WP_CSS_Selector_Parser::is_ident_codepoint
+	 * @covers WP_CSS_Selector_Parser::is_ident_start_codepoint
 	 */
 	public function test_is_ident_and_is_ident_start() {
 		$c = new class() extends WP_CSS_Selector_Parser {
@@ -86,6 +87,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	 * @ticket TBD
 	 *
 	 * @dataProvider data_idents
+	 *
+	 * @covers WP_CSS_Selector_Parser::parse_ident
 	 */
 	public function test_parse_ident( string $input, ?string $expected = null, ?string $rest = null ) {
 		$c = new class() extends WP_CSS_Selector_Parser {
@@ -108,7 +111,66 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	/**
 	 * @ticket TBD
 	 *
+	 * @dataProvider data_strings
+	 *
+	 * @covers WP_CSS_Selector_Parser::parse_string
+	 */
+	public function test_parse_string( string $input, ?string $expected = null, ?string $rest = null ) {
+		$c = new class() extends WP_CSS_Selector_Parser {
+			public static function parse( string $input, int &$offset ) {}
+			public static function test( string $input, &$offset ) {
+				return self::parse_string( $input, $offset );
+			}
+		};
+
+		$offset = 0;
+		$result = $c::test( $input, $offset );
+		if ( null === $expected ) {
+			$this->assertNull( $result );
+		} else {
+			$this->assertSame( $expected, $result, 'String did not match.' );
+			$this->assertSame( $rest, substr( $input, $offset ), 'Offset was not updated correctly.' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_strings(): array {
+		return array(
+			'"foo"'                 => array( '"foo"', 'foo', '' ),
+			'"foo"after'            => array( '"foo"after', 'foo', 'after' ),
+			'"foo""two"'            => array( '"foo""two"', 'foo', '"two"' ),
+			'"foo"\'two\''          => array( '"foo"\'two\'', 'foo', "'two'" ),
+
+			"'foo'"                 => array( "'foo'", 'foo', '' ),
+			"'foo'after"            => array( "'foo'after", 'foo', 'after' ),
+			"'foo'\"two\""          => array( "'foo'\"two\"", 'foo', '"two"' ),
+			"'foo''two'"            => array( "'foo''two'", 'foo', "'two'" ),
+
+			"'foo\\nbar'"           => array( "'foo\\\nbar'", 'foobar', '' ),
+			"'foo\\31 23'"          => array( "'foo\\31 23'", 'foo123', '' ),
+			"'foo\\31\\n23'"        => array( "'foo\\31\n23'", 'foo123', '' ),
+			"'foo\\31\\t23'"        => array( "'foo\\31\t23'", 'foo123', '' ),
+			"'foo\\00003123'"       => array( "'foo\\00003123'", 'foo123', '' ),
+
+			// Invalid
+			"Invalid: 'newline\\n'" => array( "'newline\n'" ),
+			'Invalid: foo'          => array( 'foo' ),
+			'Invalid: \\"'          => array( '\\"' ),
+			'Invalid: .foo'         => array( '.foo' ),
+			'Invalid: #foo'         => array( '#foo' ),
+		);
+	}
+
+	/**
+	 * @ticket TBD
+	 *
 	 * @dataProvider data_id_selectors
+	 *
+	 * @covers WP_CSS_ID_Selector::parse
 	 */
 	public function test_parse_id( string $input, ?string $expected = null, ?string $rest = null ) {
 		$offset = 0;
@@ -143,6 +205,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	 * @ticket TBD
 	 *
 	 * @dataProvider data_class_selectors
+	 *
+	 * @covers WP_CSS_Class_Selector::parse
 	 */
 	public function test_parse_class( string $input, ?string $expected = null, ?string $rest = null ) {
 		$offset = 0;
@@ -177,6 +241,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	 * @ticket TBD
 	 *
 	 * @dataProvider data_type_selectors
+	 *
+	 * @covers WP_CSS_Type_Selector::parse
 	 */
 	public function test_parse_type( string $input, ?string $expected = null, ?string $rest = null ) {
 		$offset = 0;
@@ -212,6 +278,8 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	 * @ticket TBD
 	 *
 	 * @dataProvider data_attribute_selectors
+	 *
+	 * @covers WP_CSS_Attribute_Selector::parse
 	 */
 	public function test_parse_attribute(
 		string $input,
