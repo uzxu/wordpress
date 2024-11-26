@@ -212,9 +212,89 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 		return $ident;
 	}
 
-	// @todo stub
+	/**
+	 * Parse a string token
+	 *
+	 * > 4.3.5. Consume a string token
+	 * > This section describes how to consume a string token from a stream of code points. It returns either a <string-token> or <bad-string-token>.
+	 * >
+	 * > This algorithm may be called with an ending code point, which denotes the code point that ends the string. If an ending code point is not specified, the current input code point is used.
+	 * >
+	 * > Initially create a <string-token> with its value set to the empty string.
+	 * >
+	 * > Repeatedly consume the next input code point from the stream:
+	 * >
+	 * > ending code point
+	 * >   Return the <string-token>.
+	 * > EOF
+	 * >   This is a parse error. Return the <string-token>.
+	 * > newline
+	 * >   This is a parse error. Reconsume the current input code point, create a <bad-string-token>, and return it.
+	 * > U+005C REVERSE SOLIDUS (\)
+	 * >   If the next input code point is EOF, do nothing.
+	 * >   Otherwise, if the next input code point is a newline, consume it.
+	 * >   Otherwise, (the stream starts with a valid escape) consume an escaped code point and append the returned code point to the <string-token>’s value.
+	 * >
+	 * > anything else
+	 * >   Append the current input code point to the <string-token>’s value.
+	 *
+	 * https://www.w3.org/TR/css-syntax-3/#consume-string-token
+	 *
+	 * This implementation will never return a <bad-string-token> because
+	 * the <bad-string-token> is not a part of the selector grammar. That
+	 * case is treated as failure to parse and null is returned.
+	 */
 	protected static function parse_string( string $input, int &$offset ): ?string {
-		return null;
+		if ( $offset + 1 >= strlen( $input ) ) {
+			return null;
+		}
+
+		$ending_code_point = $input[ $offset ];
+		if ( '"' !== $ending_code_point && "'" !== $ending_code_point ) {
+			return null;
+		}
+
+		$string_token = '';
+
+		$stop_characters = "\\\n{$ending_code_point}";
+
+		$updated_offset = $offset + 1;
+		while ( $updated_offset < strlen( $input ) ) {
+			switch ( $input[ $updated_offset ] ) {
+				case '\\':
+					if ( $updated_offset + 1 >= strlen( $input ) ) {
+						break;
+					}
+					++$updated_offset;
+					if ( "\n" === $input[ $updated_offset ] ) {
+						++$updated_offset;
+						break;
+					} else {
+						$string_token .= self::consume_escaped_codepoint( $input, $updated_offset );
+					}
+					break;
+
+				/*
+				 * This case would return a <bad-string-token>.
+				 * The <bad-string-token> is not a part of the selector grammar
+				 * so we do not return it and instead treat this as a
+				 * failure to parse a string token.
+				 */
+				case "\n":
+					return null;
+
+				case $ending_code_point:
+					++$updated_offset;
+					break 2;
+
+				default:
+					$string_token .= $input[ $updated_offset ];
+					++$updated_offset;
+			}
+		}
+
+		$offset = $updated_offset;
+		return $string_token;
 	}
 
 	/**
