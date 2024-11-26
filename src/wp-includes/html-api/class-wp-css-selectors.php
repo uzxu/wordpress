@@ -186,6 +186,8 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 * >   Reconsume the current input code point. Return result.
 	 *
 	 * https://www.w3.org/TR/css-syntax-3/#consume-name
+	 *
+	 * @return string|null
 	 */
 	protected static function parse_ident( string $input, int &$offset ): ?string {
 		if ( ! self::check_if_three_code_points_would_start_an_ident_sequence( $input, $offset ) ) {
@@ -243,6 +245,8 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 * This implementation will never return a <bad-string-token> because
 	 * the <bad-string-token> is not a part of the selector grammar. That
 	 * case is treated as failure to parse and null is returned.
+	 *
+	 * @return string|null
 	 */
 	protected static function parse_string( string $input, int &$offset ): ?string {
 		if ( $offset + 1 >= strlen( $input ) ) {
@@ -509,6 +513,8 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
 	 * > <id-selector> = <hash-token>
 	 *
 	 * https://www.w3.org/TR/selectors/#grammar
+	 *
+	 * @return self|null
 	 */
 	public static function parse( string $input, int &$offset ): ?self {
 		$ident = self::parse_hash_token( $input, $offset );
@@ -533,6 +539,8 @@ final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
 	 * > <class-selector> = '.' <ident-token>
 	 *
 	 * https://www.w3.org/TR/selectors/#grammar
+	 *
+	 * @return self|null
 	 */
 	public static function parse( string $input, int &$offset ): ?self {
 		if ( $offset + 1 >= strlen( $input ) || '.' !== $input[ $offset ] ) {
@@ -574,10 +582,12 @@ final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser {
 	 * so this selector effectively matches * or ident.
 	 *
 	 * https://www.w3.org/TR/selectors/#grammar
+	 *
+	 * @return self|null
 	 */
 	public static function parse( string $input, int &$offset ): ?self {
 		if ( $offset >= strlen( $input ) ) {
-			return false;
+			return null;
 		}
 
 		if ( '*' === $input[ $offset ] ) {
@@ -697,11 +707,13 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 	 * Namespaces are not supported, so attribute names are effectively identifiers.
 	 *
 	 * https://www.w3.org/TR/selectors/#grammar
+	 *
+	 * @return self|null
 	 */
 	public static function parse( string $input, int &$offset ): ?self {
 		// Need at least 3 bytes [x]
 		if ( $offset + 2 >= strlen( $input ) ) {
-			return false;
+			return null;
 		}
 
 		$updated_offset = $offset;
