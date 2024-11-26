@@ -260,10 +260,10 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 		while ( $updated_offset < strlen( $input ) ) {
 			switch ( $input[ $updated_offset ] ) {
 				case '\\':
-					if ( $updated_offset + 1 >= strlen( $input ) ) {
+					++$updated_offset;
+					if ( $updated_offset >= strlen( $input ) ) {
 						break;
 					}
-					++$updated_offset;
 					if ( "\n" === $input[ $updated_offset ] ) {
 						++$updated_offset;
 						break;
@@ -386,6 +386,11 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	}
 
 	/**
+	 * Check if the next code point is an "ident start code point".
+	 *
+	 * Caution! This method does not do any bounds checking, it should not be passed
+	 * a string with an offset that is out of bounds.
+	 *
 	 * > ident-start code point
 	 * >   A letter, a non-ASCII code point, or U+005F LOW LINE (_).
 	 * > uppercase letter
@@ -396,12 +401,10 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	 * >   An uppercase letter or a lowercase letter.
 	 * > non-ASCII code point
 	 * >   A code point with a value equal to or greater than U+0080 <control>.
+	 *
+	 * https://www.w3.org/TR/css-syntax-3/#ident-start-code-point
 	 */
 	protected static function is_ident_start_codepoint( string $input, int $offset ): bool {
-		if ( $offset >= strlen( $input ) ) {
-			return false;
-		}
-
 		return (
 			'_' === $input[ $offset ] ||
 			( 'a' <= $input[ $offset ] && $input[ $offset ] <= 'z' ) ||
@@ -411,10 +414,17 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	}
 
 	/**
+	 * Check if the next code point is an "ident code point".
+	 *
+	 * Caution! This method does not do any bounds checking, it should not be passed
+	 * a string with an offset that is out of bounds.
+	 *
 	 * > ident code point
 	 * >   An ident-start code point, a digit, or U+002D HYPHEN-MINUS (-).
 	 * > digit
 	 * >   A code point between U+0030 DIGIT ZERO (0) and U+0039 DIGIT NINE (9) inclusive.
+	 *
+	 * https://www.w3.org/TR/css-syntax-3/#ident-code-point
 	 */
 	protected static function is_ident_codepoint( string $input, int $offset ): bool {
 		return '-' === $input[ $offset ] ||
