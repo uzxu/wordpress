@@ -5640,6 +5640,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether the bookmark was successfully created.
 	 */
 	public function set_bookmark( $bookmark_name ): bool {
+		if ( $this->is_virtual() ) {
+			return false;
+		}
 		return parent::set_bookmark( "_{$bookmark_name}" );
 	}
 
