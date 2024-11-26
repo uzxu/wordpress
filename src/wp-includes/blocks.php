@@ -1294,16 +1294,30 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
 			'ignoredHookedBlocks' => $ignored_hooked_blocks,
 		);
 	}
-	$content = get_comment_delimited_block_content(
-		'core/navigation',
-		$attributes,
-		$response->data['content']['raw']
+
+	$post_type_to_wrapper_block_mappings = array(
+		'wp_navigation' => 'core/navigation',
+		'wp_post'       => 'core/post-content',
 	);
+
+	if ( isset( $post_type_to_wrapper_block_mappings[ $post->post_type ] ) ) {
+		$wrapper_block_type = $post_type_to_wrapper_block_mappings[ $post->post_type ];
+
+		$content = get_comment_delimited_block_content(
+			$wrapper_block_type,
+			$attributes,
+			$response->data['content']['raw']
+		);
+	} else {
+		$content = $response->data['content']['raw'];
+	}
 
 	$content = apply_block_hooks_to_content( $content, $post );
 
-	// Remove mock Navigation block wrapper.
-	$content = remove_serialized_parent_block( $content );
+	if ( isset( $post_type_to_wrapper_block_mappings[ $post->post_type ] ) ) {
+		// Remove mock block wrapper.
+		$content = remove_serialized_parent_block( $content );
+	}
 
 	$response->data['content']['raw'] = $content;
 
