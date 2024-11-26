@@ -1273,7 +1273,7 @@ function insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( &$parsed_a
 }
 
 /**
- * Hooks into the REST API response for the core/navigation block and adds the first and last inner blocks.
+ * Hooks into the REST API response for the Posts endpoint and adds the first and last inner blocks.
  *
  * @since 6.6.0
  *
