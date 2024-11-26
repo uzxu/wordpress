@@ -505,3 +505,216 @@ final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser {
 		return new self( $result );
 	}
 }
+
+final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
+	/**
+	 * [attr=value]
+	 * Represents elements with an attribute name of attr whose value is exactly value.
+	 */
+	const MATCH_EXACT = 'MATCH_EXACT';
+
+	/**
+	 * [attr~=value]
+	 * Represents elements with an attribute name of attr whose value is a
+	 * whitespace-separated list of words, one of which is exactly value.
+	 */
+	const MATCH_ONE_OF_EXACT = 'MATCH_ONE_OF_EXACT';
+
+	/**
+	 * [attr|=value]
+	 * Represents elements with an attribute name of attr whose value can be exactly value or
+	 * can begin with value immediately followed by a hyphen, - (U+002D). It is often used for
+	 * language subcode matches.
+	 */
+	const MATCH_EXACT_OR_EXACT_WITH_HYPHEN = 'MATCH_EXACT_OR_EXACT_WITH_HYPHEN';
+
+	/**
+	 * [attr^=value]
+	 * Represents elements with an attribute name of attr whose value is prefixed (preceded)
+	 * by value.
+	 */
+	const MATCH_PREFIXED_BY = 'MATCH_PREFIXED_BY';
+
+	/**
+	 * [attr$=value]
+	 * Represents elements with an attribute name of attr whose value is suffixed (followed)
+	 * by value.
+	 */
+	const MATCH_SUFFIXED_BY = 'MATCH_SUFFIXED_BY';
+
+	/**
+	 * [attr*=value]
+	 * Represents elements with an attribute name of attr whose value contains at least one
+	 * occurrence of value within the string.
+	 */
+	const MATCH_CONTAINS = 'MATCH_CONTAINS';
+
+	/**
+	 * Modifier for case sensitive matching
+	 * [attr=value s]
+	 */
+	const MODIFIER_CASE_SENSITIVE = 'case-sensitive';
+
+	/**
+	 * Modifier for case insensitive matching
+	 * [attr=value i]
+	 */
+	const MODIFIER_CASE_INSENSITIVE = 'case-insensitive';
+
+
+	/**
+	 * The attribute name.
+	 *
+	 * @var string
+	 */
+	public $name;
+
+	/**
+	 * The attribute matcher.
+	 *
+	 * @var string|null
+	 */
+	public $matcher;
+
+	/**
+	 * The attribute value.
+	 *
+	 * @var string|null
+	 */
+	public $value;
+
+	/**
+	 * The attribute modifier.
+	 *
+	 * @var string|null
+	 */
+	public $modifier;
+
+	private function __construct( string $name, ?string $matcher = null, ?string $value = null, ?string $modifier = null ) {
+		$this->name     = $name;
+		$this->matcher  = $matcher;
+		$this->value    = $value;
+		$this->modifier = $modifier;
+	}
+
+	/**
+	 * Parse a attribute selector
+	 *
+	 * > <attribute-selector> = '[' <wq-name> ']' |
+	 * >                        '[' <wq-name> <attr-matcher> [ <string-token> | <ident-token> ] <attr-modifier>? ']'
+	 * > <attr-matcher> = [ '~' | '|' | '^' | '$' | '*' ]? '='
+	 * > <attr-modifier> = i | s
+	 * > <wq-name> = <ns-prefix>? <ident-token>
+	 *
+	 * Namespaces are not supported, so attribute names are effectively identifiers.
+	 *
+	 * https://www.w3.org/TR/selectors/#grammar
+	 */
+	public static function parse( string $input, int &$offset ): ?self {
+		// Need at least 3 bytes [x]
+		if ( $offset + 2 >= strlen( $input ) ) {
+			return false;
+		}
+
+		$updated_offset = $offset;
+
+		if ( '[' !== $input[ $updated_offset ] ) {
+			return null;
+		}
+		++$updated_offset;
+
+		self::parse_whitespace( $input, $updated_offset );
+		$attr_name = self::parse_ident( $input, $updated_offset );
+		if ( null === $attr_name ) {
+			return null;
+		}
+		self::parse_whitespace( $input, $updated_offset );
+
+		if ( $updated_offset >= strlen( $input ) ) {
+			return null;
+		}
+
+		if ( ']' === $input[ $updated_offset ] ) {
+			$offset = $updated_offset + 1;
+			return new self( $attr_name );
+		}
+
+		// need to match at least `=x]` at this point
+		if ( $updated_offset + 3 >= strlen( $input ) ) {
+			return null;
+		}
+
+		if ( '=' === $input[ $updated_offset ] ) {
+			++$updated_offset;
+			$attr_matcher = WP_CSS_Attribute_Selector::MATCH_EXACT;
+		} elseif ( '=' === $input[ $updated_offset + 1 ] ) {
+			switch ( $input[ $updated_offset ] ) {
+				case '~':
+					$attr_matcher    = WP_CSS_Attribute_Selector::MATCH_ONE_OF_EXACT;
+					$updated_offset += 2;
+					break;
+				case '|':
+					$attr_matcher    = WP_CSS_Attribute_Selector::MATCH_EXACT_OR_EXACT_WITH_HYPHEN;
+					$updated_offset += 2;
+					break;
+				case '^':
+					$attr_matcher    = WP_CSS_Attribute_Selector::MATCH_PREFIXED_BY;
+					$updated_offset += 2;
+					break;
+				case '$':
+					$attr_matcher    = WP_CSS_Attribute_Selector::MATCH_SUFFIXED_BY;
+					$updated_offset += 2;
+					break;
+				case '*':
+					$attr_matcher    = WP_CSS_Attribute_Selector::MATCH_CONTAINS;
+					$updated_offset += 2;
+					break;
+				default:
+					return null;
+			}
+		} else {
+			return null;
+		}
+
+		self::parse_whitespace( $input, $updated_offset );
+		$attr_val =
+			self::parse_string( $input, $updated_offset ) ??
+			self::parse_ident( $input, $updated_offset );
+
+		if ( null === $attr_val ) {
+			return null;
+		}
+
+		self::parse_whitespace( $input, $updated_offset );
+		if ( $updated_offset >= strlen( $input ) ) {
+			return null;
+		}
+
+		$attr_modifier = null;
+		switch ( $input[ $updated_offset ] ) {
+			case 'i':
+				$attr_modifier = WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE;
+				++$updated_offset;
+				break;
+
+			case 's':
+				$attr_modifier = WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE;
+				++$updated_offset;
+				break;
+		}
+
+		if ( null !== $attr_modifier ) {
+			self::parse_whitespace( $input, $updated_offset );
+			if ( $updated_offset >= strlen( $input ) ) {
+				return null;
+			}
+		}
+
+		if ( ']' === $input[ $updated_offset ] ) {
+			$offset = $updated_offset + 1;
+			return new self( $attr_name, $attr_matcher, $attr_val, $attr_modifier );
+		}
+
+		return null;
+	}
+}
