@@ -1312,7 +1312,11 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
 		$content = $response->data['content']['raw'];
 	}
 
-	$content = apply_block_hooks_to_content( $content, $post );
+	$content = apply_block_hooks_to_content(
+		$content,
+		$post,
+		'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+	);
 
 	if ( isset( $post_type_to_wrapper_block_mappings[ $post->post_type ] ) ) {
 		// Remove mock block wrapper.
