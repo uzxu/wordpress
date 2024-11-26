@@ -256,8 +256,6 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 
 		$string_token = '';
 
-		$stop_characters = "\\\n{$ending_code_point}";
-
 		$updated_offset = $offset + 1;
 		while ( $updated_offset < strlen( $input ) ) {
 			switch ( $input[ $updated_offset ] ) {
