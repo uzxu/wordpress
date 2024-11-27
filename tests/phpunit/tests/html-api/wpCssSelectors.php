@@ -338,4 +338,22 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'Invalid: [att=val i '     => array( '[att=val i ' ),
 		);
 	}
+
+	/**
+	 * @ticket TBD
+	 */
+	public function test_parse_selector() {
+		$input  = 'el.foo#bar[baz=quux] > .child';
+		$offset = 0;
+		$sel    = WP_CSS_Selector::parse( $input, $offset );
+
+		$this->assertSame( $sel->type_selector->ident, 'el' );
+		$this->assertSame( count( $sel->subclass_selectors ), 3 );
+		$this->assertSame( $sel->subclass_selectors[0]->ident, 'foo' );
+		$this->assertSame( $sel->subclass_selectors[1]->ident, 'bar' );
+		$this->assertSame( $sel->subclass_selectors[2]->name, 'baz' );
+		$this->assertSame( $sel->subclass_selectors[2]->matcher, WP_CSS_Attribute_Selector::MATCH_EXACT );
+		$this->assertSame( $sel->subclass_selectors[2]->value, 'quux' );
+		$this->assertSame( ' > .child', substr( $input, $offset ) );
+	}
 }

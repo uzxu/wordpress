@@ -838,3 +838,67 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 		return null;
 	}
 }
+
+/**
+ * This corresponds to <compound-selector> in the grammar.
+ */
+final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
+
+	/** @var WP_CSS_Type_Selector|null */
+	public $type_selector;
+
+	/** @var array<WP_CSS_ID_Selector|WP_CSS_Class_Selector|WP_CSS_Attribute_Selector>|null */
+	public $subclass_selectors;
+
+	private function __construct( ?WP_CSS_Type_Selector $type_selector, array $subclass_selectors ) {
+		$this->type_selector      = $type_selector;
+		$this->subclass_selectors = array() === $subclass_selectors ? null : $subclass_selectors;
+	}
+
+	/**
+	 * Parses a selector string into a `WP_CSS_Selector` object.
+	 *
+	 * > <compound-selector> = [ <type-selector>? <subclass-selector>* ]!
+	 *
+	 * @param string $input The selector string to parse.
+	 * @return WP_CSS_Selector|null The parsed selector, or `null` if the selector is invalid or unsupported.
+	 */
+	public static function parse( string $input, int &$offset ): ?self {
+		if ( $offset >= strlen( $input ) ) {
+			return null;
+		}
+
+		$updated_offset = $offset;
+		$type_selector  = WP_CSS_Type_Selector::parse( $input, $updated_offset );
+
+		$subclass_selectors            = array();
+		$last_parsed_subclass_selector = self::parse_subclass_selector( $input, $updated_offset );
+		while ( null !== $last_parsed_subclass_selector ) {
+			$subclass_selectors[]          = $last_parsed_subclass_selector;
+			$last_parsed_subclass_selector = self::parse_subclass_selector( $input, $updated_offset );
+		}
+
+		if ( null !== $type_selector || array() !== $subclass_selectors ) {
+			$offset = $updated_offset;
+			return new self( $type_selector, $subclass_selectors );
+		}
+	}
+
+	/**
+	 * @return WP_CSS_ID_Selector|WP_CSS_Class_Selector|WP_CSS_Attribute_Selector|null
+	 */
+	private static function parse_subclass_selector( string $input, int &$offset ) {
+		if ( $offset >= strlen( $input ) ) {
+			return null;
+		}
+
+		$next_char = $input[ $offset ];
+		return '.' === $next_char ?
+			WP_CSS_Class_Selector::parse( $input, $offset ) : (
+			'#' === $next_char ?
+			WP_CSS_ID_Selector::parse( $input, $offset ) : (
+			'[' === $next_char ?
+			WP_CSS_Attribute_Selector::parse( $input, $offset ) :
+			null ) );
+	}
+}
