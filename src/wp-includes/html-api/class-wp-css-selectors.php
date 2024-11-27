@@ -14,7 +14,7 @@
  *
  * This class is designed for internal use by the HTML processor.
  *
- * This class is instantiated via the `WP_CSS_Selector::from_selector( string $selector )` method.
+ * This class is instantiated via the `WP_CSS_Selector_List::from_selector( string $selector )` method.
  * It accepts a CSS selector string and returns an instance of itself or `null` if the selector
  * is invalid or unsupported.
  *
@@ -27,10 +27,8 @@
  *     <selector-list> = <complex-selector-list>
  *     <complex-selector-list> = <complex-selector>#
  *     <compound-selector-list> = <compound-selector>#
- *     <simple-selector-list> = <simple-selector>#
  *     <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ]*
  *     <compound-selector> = [ <type-selector>? <subclass-selector>* ]!
- *     <simple-selector> = <type-selector> | <subclass-selector>
  *     <combinator> = '>' | '+' | '~' | [ '|' '|' ]
  *     <type-selector> = <ident-token> | '*'
  *     <subclass-selector> = <id-selector> | <class-selector> | <attribute-selector>
@@ -71,7 +69,7 @@
  * @see {@link https://www.w3.org/TR/selectors-4/}
  *
  */
-class WP_CSS_Selectors {
+class WP_CSS_Selector_List {
 	private $selectors;
 
 	private function __construct( array $selectors ) {
@@ -131,7 +129,7 @@ class WP_CSS_Selectors {
 			}
 		}
 		if ( count( $selectors ) ) {
-			return new WP_CSS_Selectors( $selectors );
+			return new WP_CSS_Selector_List( $selectors );
 		}
 		return null;
 	}
