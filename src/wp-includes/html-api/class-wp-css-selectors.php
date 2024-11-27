@@ -123,9 +123,9 @@ class WP_CSS_Selector_List {
 		$offset = 0;
 
 		while ( $offset < $length ) {
-			$sel = WP_CSS_ID_Selector::parse( $input, $offset );
-			if ( $sel ) {
-				$selectors[] = $sel;
+			$selector = WP_CSS_ID_Selector::parse( $input, $offset );
+			if ( null !== $selector ) {
+				$selectors[] = $selector;
 			}
 		}
 		if ( count( $selectors ) ) {
@@ -841,6 +841,8 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 
 /**
  * This corresponds to <compound-selector> in the grammar.
+ *
+ * > <compound-selector> = [ <type-selector>? <subclass-selector>* ]!
  */
 final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
 
@@ -856,12 +858,7 @@ final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
 	}
 
 	/**
-	 * Parses a selector string into a `WP_CSS_Selector` object.
-	 *
 	 * > <compound-selector> = [ <type-selector>? <subclass-selector>* ]!
-	 *
-	 * @param string $input The selector string to parse.
-	 * @return WP_CSS_Selector|null The parsed selector, or `null` if the selector is invalid or unsupported.
 	 */
 	public static function parse( string $input, int &$offset ): ?self {
 		if ( $offset >= strlen( $input ) ) {
@@ -882,6 +879,7 @@ final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
 			$offset = $updated_offset;
 			return new self( $type_selector, $subclass_selectors );
 		}
+		return null;
 	}
 
 	/**
@@ -900,5 +898,78 @@ final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
 			'[' === $next_char ?
 			WP_CSS_Attribute_Selector::parse( $input, $offset ) :
 			null ) );
+	}
+}
+
+
+/**
+ * This corresponds to <complex-selector> in the grammar.
+ *
+ * > <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ]*
+ */
+final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
+	const COMBINATOR_CHILD              = '>';
+	const COMBINATOR_DESCENDANT         = ' ';
+	const COMBINATOR_NEXT_SIBLING       = '+';
+	const COMBINATOR_SUBSEQUENT_SIBLING = '~';
+
+	/**
+	 * even indexes are WP_CSS_Selector, odd indexes are string combinators.
+	 * @var array<WP_CSS_Selector>
+	 */
+	public $selectors = array();
+
+	private function __construct( array $selectors ) {
+		$this->selectors = $selectors;
+	}
+
+	public static function parse( string $input, int &$offset ): ?self {
+		if ( $offset >= strlen( $input ) ) {
+			return null;
+		}
+
+		$updated_offset = $offset;
+		$selector       = WP_CSS_Selector::parse( $input, $updated_offset );
+		if ( null === $selector ) {
+			return null;
+		}
+
+		$selectors = array( $selector );
+
+		$found_whitespace = self::parse_whitespace( $input, $updated_offset );
+		while ( $updated_offset < strlen( $input ) ) {
+			switch ( $input[ $updated_offset ] ) {
+				case self::COMBINATOR_CHILD:
+				case self::COMBINATOR_NEXT_SIBLING:
+				case self::COMBINATOR_SUBSEQUENT_SIBLING:
+					$combinator = $input[ $updated_offset ];
+					++$updated_offset;
+					self::parse_whitespace( $input, $updated_offset );
+					break;
+
+				default:
+					/*
+					 * Whitespace is a descendant combinator.
+					 * Either whitespace was found and we're on a selector,
+					 * or we've failed to find any combinator and parsing is complete.
+					 */
+					if ( ! $found_whitespace ) {
+						break 2;
+					}
+					$combinator = self::COMBINATOR_DESCENDANT;
+					break;
+			}
+			// Here we've found a combinator and need another selector.
+			$selector = WP_CSS_Selector::parse( $input, $updated_offset );
+			// Failure to find a selector is a parse error.
+			if ( null === $selector ) {
+				return null;
+			}
+			$selectors[]      = $combinator;
+			$selectors[]      = $selector;
+			$found_whitespace = self::parse_whitespace( $input, $updated_offset );
+		}
+		$offset = $updated_offset;
+		return new self( $selectors );
 	}
 }

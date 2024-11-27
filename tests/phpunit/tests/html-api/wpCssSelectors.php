@@ -347,13 +347,33 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 		$offset = 0;
 		$sel    = WP_CSS_Selector::parse( $input, $offset );
 
-		$this->assertSame( $sel->type_selector->ident, 'el' );
-		$this->assertSame( count( $sel->subclass_selectors ), 3 );
-		$this->assertSame( $sel->subclass_selectors[0]->ident, 'foo' );
-		$this->assertSame( $sel->subclass_selectors[1]->ident, 'bar' );
-		$this->assertSame( $sel->subclass_selectors[2]->name, 'baz' );
-		$this->assertSame( $sel->subclass_selectors[2]->matcher, WP_CSS_Attribute_Selector::MATCH_EXACT );
-		$this->assertSame( $sel->subclass_selectors[2]->value, 'quux' );
+		$this->assertSame( 'el', $sel->type_selector->ident );
+		$this->assertSame( 3, count( $sel->subclass_selectors ) );
+		$this->assertSame( 'foo', $sel->subclass_selectors[0]->ident, 'foo' );
+		$this->assertSame( 'bar', $sel->subclass_selectors[1]->ident, 'bar' );
+		$this->assertSame( 'baz', $sel->subclass_selectors[2]->name, 'baz' );
+		$this->assertSame( WP_CSS_Attribute_Selector::MATCH_EXACT, $sel->subclass_selectors[2]->matcher );
+		$this->assertSame( 'quux', $sel->subclass_selectors[2]->value );
 		$this->assertSame( ' > .child', substr( $input, $offset ) );
+	}
+
+	/**
+	 * @ticket TBD
+	 */
+	public function test_parse_complex_selector() {
+		$input  = 'el.foo#bar[baz=quux] > .child, rest';
+		$offset = 0;
+		$sel    = WP_CSS_Complex_Selector::parse( $input, $offset );
+
+		var_dump( $sel );
+		$this->assertSame( 3, count( $sel->selectors ) );
+		$this->assertNotNull( $sel->selectors[0]->type_selector );
+		$this->assertSame( 3, count( $sel->selectors[0]->subclass_selectors ) );
+		$this->assertSame( WP_CSS_Complex_Selector::COMBINATOR_CHILD, $sel->selectors[1] );
+		$this->assertNull( $sel->selectors[2]->type_selector );
+		$this->assertSame( 1, count( $sel->selectors[2]->subclass_selectors ) );
+		$this->assertSame( 'child', $sel->selectors[2]->subclass_selectors[0]->ident );
+
+		$this->assertSame( ', rest', substr( $input, $offset ) );
 	}
 }
