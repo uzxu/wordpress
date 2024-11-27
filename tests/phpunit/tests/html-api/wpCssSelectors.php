@@ -360,12 +360,21 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	/**
 	 * @ticket TBD
 	 */
+	public function test_parse_empty_selector() {
+		$input  = '';
+		$offset = 0;
+		$result = WP_CSS_Selector::parse( $input, $offset );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket TBD
+	 */
 	public function test_parse_complex_selector() {
-		$input  = 'el.foo#bar[baz=quux] > .child, rest';
+		$input  = 'el.foo#bar[baz=quux] > .child , rest';
 		$offset = 0;
 		$sel    = WP_CSS_Complex_Selector::parse( $input, $offset );
 
-		var_dump( $sel );
 		$this->assertSame( 3, count( $sel->selectors ) );
 		$this->assertNotNull( $sel->selectors[0]->type_selector );
 		$this->assertSame( 3, count( $sel->selectors[0]->subclass_selectors ) );
@@ -375,5 +384,59 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 		$this->assertSame( 'child', $sel->selectors[2]->subclass_selectors[0]->ident );
 
 		$this->assertSame( ', rest', substr( $input, $offset ) );
+	}
+
+	/**
+	 * @ticket TBD
+	 */
+	public function test_parse_invalid_complex_selector() {
+		$input  = 'el.foo#bar[baz=quux] > , rest';
+		$offset = 0;
+		$result = WP_CSS_Complex_Selector::parse( $input, $offset );
+		$this->assertNull( $result );
+	}
+
+	public function test_parse_empty_complex_selector() {
+		$input  = '';
+		$offset = 0;
+		$result = WP_CSS_Complex_Selector::parse( $input, $offset );
+		$this->assertNull( $result );
+	}
+
+
+	/**
+	 * @ticket TBD
+	 */
+	public function test_parse_selector_list() {
+		$input  = 'el.foo#bar[baz=quux] .descendent , rest';
+		$result = WP_CSS_Selector_List::from_selectors( $input );
+		$this->assertNotNull( $result );
+	}
+
+	/**
+	 * @ticket TBD
+	 */
+	public function test_parse_invalid_selector_list() {
+		$input  = 'el,,';
+		$result = WP_CSS_Selector_List::from_selectors( $input );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket TBD
+	 */
+	public function test_parse_invalid_selector_list2() {
+		$input  = 'el!';
+		$result = WP_CSS_Selector_List::from_selectors( $input );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket TBD
+	 */
+	public function test_parse_empty_selector_list() {
+		$input  = " \t   \t\n\r\f";
+		$result = WP_CSS_Selector_List::from_selectors( $input );
+		$this->assertNull( $result );
 	}
 }

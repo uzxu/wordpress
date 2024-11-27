@@ -117,21 +117,31 @@ class WP_CSS_Selector_List {
 		$input = str_replace( array( "\r", "\f" ), "\n", $input );
 		$input = str_replace( "\0", "\u{FFFD}", $input );
 
-		$length    = strlen( $input );
-		$selectors = array();
-
 		$offset = 0;
 
-		while ( $offset < $length ) {
-			$selector = WP_CSS_ID_Selector::parse( $input, $offset );
-			if ( null !== $selector ) {
-				$selectors[] = $selector;
+		$selector = WP_CSS_Complex_Selector::parse( $input, $offset );
+		if ( null === $selector ) {
+			return null;
+		}
+		WP_CSS_Selector_Parser::parse_whitespace( $input, $offset );
+
+		$selectors = array( $selector );
+		while ( $offset < strlen( $input ) ) {
+			// Each loop should stop on a `,` selector list delimiter.
+			if ( ',' !== $input[ $offset ] ) {
+				return null;
 			}
+			++$offset;
+			WP_CSS_Selector_Parser::parse_whitespace( $input, $offset );
+			$selector = WP_CSS_Complex_Selector::parse( $input, $offset );
+			if ( null === $selector ) {
+				return null;
+			}
+			$selectors[] = $selector;
+			WP_CSS_Selector_Parser::parse_whitespace( $input, $offset );
 		}
-		if ( count( $selectors ) ) {
-			return new WP_CSS_Selector_List( $selectors );
-		}
-		return null;
+
+		return new WP_CSS_Selector_List( $selectors );
 	}
 }
 
@@ -145,7 +155,7 @@ interface IWP_CSS_Selector_Parser {
 abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
 	const UTF8_MAX_CODEPOINT_VALUE = 0x10FFFF;
 
-	protected static function parse_whitespace( string $input, int &$offset ): bool {
+	public static function parse_whitespace( string $input, int &$offset ): bool {
 		$length   = strspn( $input, " \t\r\n\f", $offset );
 		$advanced = $length > 0;
 		$offset  += $length;
@@ -938,35 +948,38 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 
 		$found_whitespace = self::parse_whitespace( $input, $updated_offset );
 		while ( $updated_offset < strlen( $input ) ) {
-			switch ( $input[ $updated_offset ] ) {
-				case self::COMBINATOR_CHILD:
-				case self::COMBINATOR_NEXT_SIBLING:
-				case self::COMBINATOR_SUBSEQUENT_SIBLING:
+			if (
+				self::COMBINATOR_CHILD === $input[ $updated_offset ] ||
+				self::COMBINATOR_NEXT_SIBLING === $input[ $updated_offset ] ||
+				self::COMBINATOR_SUBSEQUENT_SIBLING === $input[ $updated_offset ]
+			) {
 					$combinator = $input[ $updated_offset ];
 					++$updated_offset;
 					self::parse_whitespace( $input, $updated_offset );
-					break;
 
-				default:
-					/*
-					 * Whitespace is a descendant combinator.
-					 * Either whitespace was found and we're on a selector,
-					 * or we've failed to find any combinator and parsing is complete.
-					 */
-					if ( ! $found_whitespace ) {
-						break 2;
-					}
-					$combinator = self::COMBINATOR_DESCENDANT;
+					// Failure to find a selector here is a parse error
+					$selector = WP_CSS_Selector::parse( $input, $updated_offset );
+					// Failure to find a selector is a parse error.
+				if ( null === $selector ) {
+					return null;
+				}
+				$selectors[] = $combinator;
+				$selectors[] = $selector;
+			} elseif ( ! $found_whitespace ) {
+				break;
+			} else {
+
+				/*
+				* Whitespace is ambiguous, it could be a descendant combinator or
+				* insignificant whitespace.
+				*/
+				$selector = WP_CSS_Selector::parse( $input, $updated_offset );
+				if ( null === $selector ) {
 					break;
+				}
+				$selectors[] = self::COMBINATOR_DESCENDANT;
+				$selectors[] = $selector;
 			}
-			// Here we've found a combinator and need another selector.
-			$selector = WP_CSS_Selector::parse( $input, $updated_offset );
-			// Failure to find a selector is a parse error.
-			if ( null === $selector ) {
-				return null;
-			}
-			$selectors[]      = $combinator;
-			$selectors[]      = $selector;
 			$found_whitespace = self::parse_whitespace( $input, $updated_offset );
 		}
 		$offset = $updated_offset;
