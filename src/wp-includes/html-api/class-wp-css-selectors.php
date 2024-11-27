@@ -19,7 +19,29 @@
  * is invalid or unsupported.
  *
  * A subset of the CSS selector grammar is supported. The grammar is defined in the CSS Syntax
- * specification, which is available at https://www.w3.org/TR/css-syntax-3/.
+ * specification, which is available at {@link https://www.w3.org/TR/selectors/#grammar}.
+ *
+ * @todo Review this grammar, especially the complex selector for accurate support information.
+ * The supported grammar is:
+ *
+ *     <selector-list> = <complex-selector-list>
+ *     <complex-selector-list> = <complex-selector>#
+ *     <compound-selector-list> = <compound-selector>#
+ *     <simple-selector-list> = <simple-selector>#
+ *     <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ]*
+ *     <compound-selector> = [ <type-selector>? <subclass-selector>* ]!
+ *     <simple-selector> = <type-selector> | <subclass-selector>
+ *     <combinator> = '>' | '+' | '~' | [ '|' '|' ]
+ *     <type-selector> = <ident-token> | '*'
+ *     <subclass-selector> = <id-selector> | <class-selector> | <attribute-selector>
+ *     <id-selector> = <hash-token>
+ *     <class-selector> = '.' <ident-token>
+ *     <attribute-selector> = '[' <ident-token> ']' |
+ *                            '[' <ident-token> <attr-matcher> [ <string-token> | <ident-token> ] <attr-modifier>? ']'
+ *     <attr-matcher> = [ '~' | '|' | '^' | '$' | '*' ]? '='
+ *     <attr-modifier> = i | s
+ *
+ * @link https://www.w3.org/TR/selectors/#grammar Refer to the grammar for more details.
  *
  * Supported selector syntax:
  * - Type selectors (tag names, e.g. `div`)
@@ -43,10 +65,10 @@
  *
  * @access private
  *
- * @see https://www.w3.org/TR/css-syntax-3/#consume-a-token
- * @see https://www.w3.org/tr/selectors/#parse-selector
- * @see https://www.w3.org/TR/selectors-api2/
- * @see https://www.w3.org/TR/selectors-4/
+ * @see {@link https://www.w3.org/TR/css-syntax-3/}
+ * @see {@link https://www.w3.org/tr/selectors/}
+ * @see {@link https://www.w3.org/TR/selectors-api2/}
+ * @see {@link https://www.w3.org/TR/selectors-4/}
  *
  */
 class WP_CSS_Selectors {
