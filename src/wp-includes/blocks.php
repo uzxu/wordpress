@@ -1281,7 +1281,7 @@ function insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( &$parsed_a
  * @return WP_REST_Response The response object.
  */
 function insert_hooked_blocks_into_rest_response( $response, $post ) {
-	if ( ! isset( $response->data['content']['raw'] ) || ! isset( $response->data['content']['rendered'] ) ) {
+	if ( empty( $response->data['content']['raw'] ) || empty( $response->data['content']['rendered'] ) ) {
 		return $response;
 	}
 
