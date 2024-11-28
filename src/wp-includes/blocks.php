@@ -1052,10 +1052,6 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  * @return string The serialized markup.
  */
 function apply_block_hooks_to_content( $content, $context = null, $callback = 'insert_hooked_blocks' ) {
-	if ( ! $content ) {
-		return $content;
-	}
-
 	// Default to the current post if no context is provided.
 	if ( null === $context ) {
 		$context = get_post();
