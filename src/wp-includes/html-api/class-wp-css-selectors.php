@@ -823,11 +823,13 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 		$attr_modifier = null;
 		switch ( $input[ $updated_offset ] ) {
 			case 'i':
+			case 'I':
 				$attr_modifier = WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE;
 				++$updated_offset;
 				break;
 
 			case 's':
+			case 'S':
 				$attr_modifier = WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE;
 				++$updated_offset;
 				break;
