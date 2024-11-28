@@ -1317,8 +1317,19 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
 
 	$response->data['content']['raw'] = $content;
 
+	// No need to inject hooked blocks twice.
+	$priority = has_filter( 'the_content', 'apply_block_hooks_to_content' );
+	if ( false !== $priority ) {
+		remove_filter( 'the_content', 'apply_block_hooks_to_content', $priority );
+	}
+
 	/** This filter is documented in wp-includes/post-template.php */
 	$response->data['content']['rendered'] = apply_filters( 'the_content', $content );
+
+	// Add back the filter.
+	if ( false !== $priority ) {
+		add_filter( 'the_content', 'apply_block_hooks_to_content', $priority );
+	}
 
 	return $response;
 }
