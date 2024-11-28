@@ -76,11 +76,11 @@ class WP_CSS_Selector_List implements IWP_CSS_Selector_Matcher {
 		}
 
 		foreach ( $this->selectors as $selector ) {
-			if ( ! $selector->matches( $processor ) ) {
-				return false;
+			if ( $selector->matches( $processor ) ) {
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	private $selectors;
