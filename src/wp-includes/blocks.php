@@ -912,7 +912,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 	 * @param string                          $relative_position  The relative position of the hooked blocks.
 	 *                                                            Can be one of 'before', 'after', 'first_child', or 'last_child'.
 	 * @param string                          $anchor_block_type  The anchor block type.
-	 * @param WP_Block_Template|WP_Post|array $context            The block template, template part, `wp_navigation` post type,
+	 * @param WP_Block_Template|WP_Post|array $context            The block template, template part, post type,
 	 *                                                            or pattern that the anchor block belongs to.
 	 */
 	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
@@ -935,7 +935,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		 * @param string                          $hooked_block_type   The hooked block type name.
 		 * @param string                          $relative_position   The relative position of the hooked block.
 		 * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
-		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, `wp_navigation` post type,
+		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, post type,
 		 *                                                             or pattern that the anchor block belongs to.
 		 */
 		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
@@ -951,7 +951,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		 * @param string                          $hooked_block_type   The hooked block type name.
 		 * @param string                          $relative_position   The relative position of the hooked block.
 		 * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
-		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, `wp_navigation` post type,
+		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, post type,
 		 *                                                             or pattern that the anchor block belongs to.
 		 */
 		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
@@ -1043,7 +1043,7 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  * @access private
  *
  * @param string                               $content  Serialized content.
- * @param WP_Block_Template|WP_Post|array|null $context  A block template, template part, `wp_navigation` post object,
+ * @param WP_Block_Template|WP_Post|array|null $context  A block template, template part, post object,
  *                                                       or pattern that the blocks belong to. If set to `null`, the
  *                                                       current post is used.
  *                                                       Default: `null`.
@@ -1338,7 +1338,7 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
  * @access private
  *
  * @param array                           $hooked_blocks An array of blocks hooked to another given block.
- * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
+ * @param WP_Block_Template|WP_Post|array $context       A block template, template part, post object,
  *                                                       or pattern that the blocks belong to.
  * @param callable                        $callback      A function that will be called for each block to generate
  *                                                       the markup for a given list of blocks that are hooked to it.
@@ -1395,7 +1395,7 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
  * @access private
  *
  * @param array                           $hooked_blocks An array of blocks hooked to another block.
- * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
+ * @param WP_Block_Template|WP_Post|array $context       A block template, template part, post object,
  *                                                       or pattern that the blocks belong to.
  * @param callable                        $callback      A function that will be called for each block to generate
  *                                                       the markup for a given list of blocks that are hooked to it.
