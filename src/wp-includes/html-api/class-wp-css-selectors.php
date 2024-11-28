@@ -27,9 +27,9 @@
  *     <selector-list> = <complex-selector-list>
  *     <complex-selector-list> = <complex-selector>#
  *     <compound-selector-list> = <compound-selector>#
- *     <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ]*
+ *     <complex-selector> = [ <type-selector> <combinator>? ]* <compound-selector>
  *     <compound-selector> = [ <type-selector>? <subclass-selector>* ]!
- *     <combinator> = '>' | '+' | '~' | [ '|' '|' ]
+ *     <combinator> = '>' | [ '|' '|' ]
  *     <type-selector> = <ident-token> | '*'
  *     <subclass-selector> = <id-selector> | <class-selector> | <attribute-selector>
  *     <id-selector> = <hash-token>
@@ -47,17 +47,23 @@
  * - ID selectors (e.g. `#unique-id`)
  * - Attribute selectors (e.g. `[attribute-name]` or `[attribute-name="value"]`)
  * - Comma-separated selector lists (e.g. `.selector-1, .selector-2`)
- * - The following combinators:
- *   - descendant (e.g. `.parent .descendant`)
- *   - child (`.parent > .child`)
+ * - The following combinators. Only type (element) selectors are allowed in non-final position:
+ *   - descendant (e.g. `el .descendant`)
+ *   - child (`el > .child`)
  *
  * Unsupported selector syntax:
  * - Pseudo-element selectors (e.g. `::before`)
  * - Pseudo-class selectors (e.g. `:hover` or `:nth-child(2)`)
  * - Namespace prefixes (e.g. `svg|title` or `[xlink|href]`)
  * - The following combinators:
- *   - Next sibling (`.sibling + .sibling`)
- *   - Subsequent sibling (`.sibling ~ .sibling`)
+ *   - Next sibling (`el + el`)
+ *   - Subsequent sibling (`el ~ el`)
+ *
+ * Future ideas
+ *   - Namespace type selectors could be implemented with select namespaces in order to
+ *     select elements from a namespace, for example:
+ *     - `svg|*` to select all SVG elements
+ *     - `html|title` to select only HTML TITLE elements.
  *
  * @since TBD
  *
