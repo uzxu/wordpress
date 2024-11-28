@@ -1066,7 +1066,8 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 			return null;
 		}
 
-		$selectors = array( $selector );
+		$selectors                       = array( $selector );
+		$has_preceding_subclass_selector = null !== $selector->subclass_selectors;
 
 		$found_whitespace = self::parse_whitespace( $input, $updated_offset );
 		while ( $updated_offset < strlen( $input ) ) {
@@ -1075,22 +1076,13 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 				self::COMBINATOR_NEXT_SIBLING === $input[ $updated_offset ] ||
 				self::COMBINATOR_SUBSEQUENT_SIBLING === $input[ $updated_offset ]
 			) {
-					$combinator = $input[ $updated_offset ];
-					++$updated_offset;
-					self::parse_whitespace( $input, $updated_offset );
+				$combinator = $input[ $updated_offset ];
+				++$updated_offset;
+				self::parse_whitespace( $input, $updated_offset );
 
-					// Failure to find a selector here is a parse error
-					$selector = WP_CSS_Selector::parse( $input, $updated_offset );
-					// Failure to find a selector is a parse error.
-				if ( null === $selector ) {
-					return null;
-				}
-				$selectors[] = $combinator;
-				$selectors[] = $selector;
-			} elseif ( ! $found_whitespace ) {
-				break;
-			} else {
-
+				// Failure to find a selector here is a parse error
+				$selector = WP_CSS_Selector::parse( $input, $updated_offset );
+			} elseif ( $found_whitespace ) {
 				/*
 				* Whitespace is ambiguous, it could be a descendant combinator or
 				* insignificant whitespace.
@@ -1099,9 +1091,24 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 				if ( null === $selector ) {
 					break;
 				}
-				$selectors[] = self::COMBINATOR_DESCENDANT;
-				$selectors[] = $selector;
+				$combinator = self::COMBINATOR_DESCENDANT;
+			} else {
+				break;
 			}
+
+			if ( null === $selector ) {
+				return null;
+			}
+
+			// `div > .className` is valid, but `.className > div` is not.
+			if ( $has_preceding_subclass_selector ) {
+				throw new Exception( 'Unsupported non-final subclass selector.' );
+			}
+			$has_preceding_subclass_selector = null !== $selector->subclass_selectors;
+
+			$selectors[] = $combinator;
+			$selectors[] = $selector;
+
 			$found_whitespace = self::parse_whitespace( $input, $updated_offset );
 		}
 		$offset = $updated_offset;
