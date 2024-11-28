@@ -575,8 +575,10 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
 	}
 
 	public function matches( WP_HTML_Processor $processor ): bool {
-		// @todo check case sensitivity.
-		return $processor->get_attribute( 'id' ) === $this->ident;
+		$case_insensitive = method_exists( $processor, 'is_quirks_mode' ) && $processor->is_quirks_mode();
+		return $case_insensitive ?
+			0 === strcasecmp( $processor->get_attribute( 'id' ), $this->ident ) :
+			$processor->get_attribute( 'id' ) === $this->ident;
 	}
 }
 
