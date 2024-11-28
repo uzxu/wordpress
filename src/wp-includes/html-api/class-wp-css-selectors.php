@@ -1071,6 +1071,19 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 				return $this->explore_matches( $selectors, array_slice( $breadcrumbs, 1 ) );
 
 			case self::COMBINATOR_DESCENDANT:
+				$ident = $selector->type_selector->ident;
+
+				// Find _all_ the breadcrumbs that match and recurse from each of them.
+				for ( $i = 0; $i < count( $breadcrumbs ); $i++ ) {
+					if ( '*' === $selector->type_selector->ident || strcasecmp( $breadcrumbs[ $i ], $selector->type_selector->ident ) === 0 ) {
+						$next_crumbs = array_slice( $breadcrumbs, $i + 1 );
+						if ( $this->explore_matches( array_slice( $selectors, 2 ), $next_crumbs ) ) {
+							return true;
+						}
+					}
+				}
+				return false;
+
 			default:
 				throw new Exception( "Combinator '{$combinator}' is not supported yet." );
 		}
