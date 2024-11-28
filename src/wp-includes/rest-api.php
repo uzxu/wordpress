@@ -297,6 +297,10 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Post_Statuses_Controller();
 	$controller->register_routes();
 
+	// Post counts.
+	$controller = new WP_REST_Post_Counts_Controller();
+	$controller->register_routes();
+
 	// Taxonomies.
 	$controller = new WP_REST_Taxonomies_Controller();
 	$controller->register_routes();
