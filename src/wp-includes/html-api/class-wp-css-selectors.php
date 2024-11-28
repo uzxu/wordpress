@@ -584,7 +584,7 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
 
 final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
 	public function matches( WP_HTML_Processor $processor ): bool {
-		return $processor->has_class( $this->ident );
+		return (bool) $processor->has_class( $this->ident );
 	}
 
 	/** @var string */
