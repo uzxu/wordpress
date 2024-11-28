@@ -1295,22 +1295,17 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
 		);
 	}
 
-	$post_type_to_wrapper_block_mappings = array(
-		'wp_navigation' => 'core/navigation',
-		'wp_post'       => 'core/post-content',
-	);
-
-	if ( isset( $post_type_to_wrapper_block_mappings[ $post->post_type ] ) ) {
-		$wrapper_block_type = $post_type_to_wrapper_block_mappings[ $post->post_type ];
-
-		$content = get_comment_delimited_block_content(
-			$wrapper_block_type,
-			$attributes,
-			$response->data['content']['raw']
-		);
+	if ( 'wp_navigation' === $post->post_type ) {
+		$wrapper_block_type = 'core/navigation';
 	} else {
-		$content = $response->data['content']['raw'];
+		$wrapper_block_type = 'core/post-content';
 	}
+
+	$content = get_comment_delimited_block_content(
+		$wrapper_block_type,
+		$attributes,
+		$response->data['content']['raw']
+	);
 
 	$content = apply_block_hooks_to_content(
 		$content,
@@ -1318,10 +1313,8 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
 		'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
 	);
 
-	if ( isset( $post_type_to_wrapper_block_mappings[ $post->post_type ] ) ) {
-		// Remove mock block wrapper.
-		$content = remove_serialized_parent_block( $content );
-	}
+	// Remove mock block wrapper.
+	$content = remove_serialized_parent_block( $content );
 
 	$response->data['content']['raw'] = $content;
 
