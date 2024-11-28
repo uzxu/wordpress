@@ -69,7 +69,20 @@
  * @see {@link https://www.w3.org/TR/selectors-4/}
  *
  */
-class WP_CSS_Selector_List {
+class WP_CSS_Selector_List implements IWP_CSS_Selector_Matcher {
+	public function matches( WP_HTML_Processor $processor ): bool {
+		if ( $processor->get_token_type() !== '#tag' ) {
+			return false;
+		}
+
+		foreach ( $this->selectors as $selector ) {
+			if ( ! $selector->matches( $processor ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private $selectors;
 
 	private function __construct( array $selectors ) {
@@ -145,6 +158,13 @@ class WP_CSS_Selector_List {
 	}
 }
 
+interface IWP_CSS_Selector_Matcher {
+	/**
+	 * @return bool
+	 */
+	public function matches( WP_HTML_Processor $processor ): bool;
+}
+
 interface IWP_CSS_Selector_Parser {
 	/**
 	 * @return static|null
@@ -152,7 +172,7 @@ interface IWP_CSS_Selector_Parser {
 	public static function parse( string $input, int &$offset );
 }
 
-abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser {
+abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
 	const UTF8_MAX_CODEPOINT_VALUE = 0x10FFFF;
 
 	public static function parse_whitespace( string $input, int &$offset ): bool {
@@ -553,9 +573,18 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
 		}
 		return new self( $ident );
 	}
+
+	public function matches( WP_HTML_Processor $processor ): bool {
+		// @todo check case sensitivity.
+		return $processor->get_attribute( 'id' ) === $this->ident;
+	}
 }
 
 final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
+	public function matches( WP_HTML_Processor $processor ): bool {
+		return $processor->has_class( $this->ident );
+	}
+
 	/** @var string */
 	public $ident;
 
@@ -590,6 +619,13 @@ final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
 }
 
 final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser {
+	public function matches( WP_HTML_Processor $processor ): bool {
+		if ( '*' === $this->ident ) {
+			return true;
+		}
+		return 0 === strcasecmp( $processor->get_tag(), $this->ident );
+	}
+
 	/**
 	 * @var string
 	 *
@@ -635,9 +671,64 @@ final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser {
 }
 
 final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
+	public function matches( WP_HTML_Processor $processor ): bool {
+		$att_value = $processor->get_attribute( $this->name );
+		if ( null === $att_value ) {
+			return false;
+		}
+
+		if ( null === $this->value ) {
+			return true;
+		}
+
+		$case_insensitive = self::MODIFIER_CASE_INSENSITIVE === $this->modifier;
+
+		switch ( $this->matcher ) {
+			case self::MATCH_EXACT:
+				return $case_insensitive ?
+					0 === strcasecmp( $att_value, $this->value ) :
+					$att_value === $this->value;
+
+			case self::MATCH_ONE_OF_EXACT:
+				// @todo
+				throw new Exception( 'One of attribute matching is not supported yet.' );
+
+			case self::MATCH_EXACT_OR_EXACT_WITH_HYPHEN:
+				// Attempt the full match first
+				if (
+					$case_insensitive ?
+					0 === strcasecmp( $att_value, $this->value ) :
+					$att_value === $this->value
+				) {
+					return true;
+				}
+
+				// Partial match
+				if ( strlen( $att_value ) < strlen( $this->value ) + 1 ) {
+					return false;
+				}
+
+				$starts_with = "{$this->value}-";
+				return 0 === substr_compare( $att_value, $starts_with, 0, strlen( $starts_with ), $case_insensitive );
+
+			case self::MATCH_PREFIXED_BY:
+				return 0 === substr_compare( $att_value, $this->value, 0, strlen( $this->value ), $case_insensitive );
+
+			case self::MATCH_SUFFIXED_BY:
+				return 0 === substr_compare( $att_value, $this->value, -strlen( $this->value ), null, $case_insensitive );
+
+			case self::MATCH_CONTAINS:
+				return false !== (
+					$case_insensitive ?
+						stripos( $att_value, $this->value ) :
+						strpos( $att_value, $this->value )
+				);
+		}
+	}
+
 	/**
-	 * [attr=value]
-	 * Represents elements with an attribute name of attr whose value is exactly value.
+	 * [att=val]
+	 * Represents an element with the att attribute whose value is exactly "val".
 	 */
 	const MATCH_EXACT = 'MATCH_EXACT';
 
@@ -857,6 +948,19 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
  * > <compound-selector> = [ <type-selector>? <subclass-selector>* ]!
  */
 final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
+	public function matches( WP_HTML_Processor $processor ): bool {
+		if ( $this->type_selector ) {
+			if ( ! $this->type_selector->matches( $processor ) ) {
+				return false;
+			}
+		}
+		foreach ( $this->subclass_selectors as $subclass_selector ) {
+			if ( ! $subclass_selector->matches( $processor ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	/** @var WP_CSS_Type_Selector|null */
 	public $type_selector;
@@ -920,6 +1024,14 @@ final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
  * > <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ]*
  */
 final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
+	public function matches( WP_HTML_Processor $processor ): bool {
+		// @todo this can throw on parse.
+		if ( count( $this->selectors ) > 1 ) {
+			throw new Exception( 'Combined complex selectors are not supported yet.' );
+		}
+		return $this->selectors[0]->matches( $processor );
+	}
+
 	const COMBINATOR_CHILD              = '>';
 	const COMBINATOR_DESCENDANT         = ' ';
 	const COMBINATOR_NEXT_SIBLING       = '+';
