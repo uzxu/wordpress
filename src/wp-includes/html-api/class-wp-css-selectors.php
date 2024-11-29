@@ -871,6 +871,12 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser implements 
 	 */
 	public $modifier;
 
+	/**
+	 * @param string $name
+	 * @param null|self::MATCH_* $matcher
+	 * @param null|string $value
+	 * @param null|self::MODIFIER_* $modifier
+	 */
 	private function __construct( string $name, ?string $matcher = null, ?string $value = null, ?string $modifier = null ) {
 		$this->name     = $name;
 		$this->matcher  = $matcher;
@@ -1092,19 +1098,20 @@ final class WP_CSS_Selector extends WP_CSS_Selector_Parser implements IWP_CSS_Se
 /**
  * This corresponds to <complex-selector> in the grammar.
  *
- * > <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ]*
+ * > <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ] *
  */
 final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
 	public function matches( WP_HTML_Processor $processor ): bool {
-		if ( count( $this->selectors ) === 1 ) {
-			return $this->selectors[0]->matches( $processor );
-		}
-
 		// First selector must match this location.
 		if ( ! $this->selectors[0]->matches( $processor ) ) {
 			return false;
 		}
 
+		if ( count( $this->selectors ) === 1 ) {
+			return true;
+		}
+
+		/** @var array<string> $breadcrumbs */
 		$breadcrumbs = array_slice( array_reverse( $processor->get_breadcrumbs() ), 1 );
 		$selectors   = array_slice( $this->selectors, 1 );
 		return $this->explore_matches( $selectors, $breadcrumbs );
