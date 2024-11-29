@@ -1,4 +1,8 @@
-<?php
+<?php // phpcs:disable WordPress.Files.FileName.InvalidClassFileName
+// phpcs:disable Generic.Files.OneObjectStructurePerFile.MultipleFound
+
+// @todo fix the ignores ^^
+
 /**
  * HTML API: WP_CSS_Selectors class
  *
@@ -6,8 +10,6 @@
  * @subpackage HTML-API
  * @since TBD
  */
-
-// phpcs:disable Generic.Files.OneObjectStructurePerFile.MultipleFound
 
 /**
  * Core class used by the HTML processor to parse CSS selectors.
@@ -741,6 +743,8 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 						: strpos( $att_value, $this->value )
 				);
 		}
+
+		throw new Exception( 'Unreachable' );
 	}
 
 	/**
@@ -830,7 +834,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 	/**
 	 * The attribute matcher.
 	 *
-	 * @var string|null
+	 * @var null|self::MATCH_*
 	 */
 	public $matcher;
 
@@ -844,7 +848,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 	/**
 	 * The attribute modifier.
 	 *
-	 * @var string|null
+	 * @var null|self::MODIFIER_*
 	 */
 	public $modifier;
 
@@ -1086,7 +1090,7 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 	/**
 	 * This only looks at breadcrumbs and can therefore only support type selectors.
 	 *
-	 * @param array<WP_CSS_Selector> $selectors
+	 * @param array<WP_CSS_Selector|self::COMBINATOR_*> $selectors
 	 */
 	private function explore_matches( array $selectors, array $breadcrumbs ): bool {
 		if ( array() === $selectors ) {
@@ -1096,8 +1100,10 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 			return false;
 		}
 
+		/** @var self::COMBINATOR_* $combinator */
 		$combinator = $selectors[0];
-		$selector   = $selectors[1];
+		/** @var WP_CSS_Selector $selector */
+		$selector = $selectors[1];
 
 		switch ( $combinator ) {
 			case self::COMBINATOR_CHILD:
@@ -1107,8 +1113,6 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 				return $this->explore_matches( $selectors, array_slice( $breadcrumbs, 1 ) );
 
 			case self::COMBINATOR_DESCENDANT:
-				$ident = $selector->type_selector->ident;
-
 				// Find _all_ the breadcrumbs that match and recurse from each of them.
 				for ( $i = 0; $i < count( $breadcrumbs ); $i++ ) {
 					if ( '*' === $selector->type_selector->ident || strcasecmp( $breadcrumbs[ $i ], $selector->type_selector->ident ) === 0 ) {
