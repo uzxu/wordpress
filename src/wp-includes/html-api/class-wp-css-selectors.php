@@ -113,7 +113,7 @@ class WP_CSS_Selector_List implements IWP_CSS_Selector_Matcher {
 	 *
 	 * @since TBD
 	 *
-	 * @return WP_CSS_Selectors|null
+	 * @return self|null
 	 */
 	private static function parse( string $input ) {
 		// > A selector string is a list of one or more complex selectors ([SELECTORS4], section 3.1) that may be surrounded by whitespace and matches the dom_selectors_group production.
