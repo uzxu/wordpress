@@ -309,8 +309,12 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'[href=foo]'               => array( '[href=foo]', 'href', WP_CSS_Attribute_Selector::MATCH_EXACT, 'foo', null, '' ),
 			'[href \n =   bar   ]'     => array( "[href \n =   bar   ]", 'href', WP_CSS_Attribute_Selector::MATCH_EXACT, 'bar', null, '' ),
 			'[href \n ^=   baz   ]'    => array( "[href \n ^=   baz   ]", 'href', WP_CSS_Attribute_Selector::MATCH_PREFIXED_BY, 'baz', null, '' ),
+
 			'[match $= insensitive i]' => array( '[match $= insensitive i]', 'match', WP_CSS_Attribute_Selector::MATCH_SUFFIXED_BY, 'insensitive', WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE, '' ),
 			'[match|=sensitive s]'     => array( '[match|=sensitive s]', 'match', WP_CSS_Attribute_Selector::MATCH_EXACT_OR_EXACT_WITH_HYPHEN, 'sensitive', WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE, '' ),
+			'[att=val I]'              => array( '[att=val I]', 'att', WP_CSS_Attribute_Selector::MATCH_EXACT, 'val', WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE, '' ),
+			'[att=val S]'              => array( '[att=val S]', 'att', WP_CSS_Attribute_Selector::MATCH_EXACT, 'val', WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE, '' ),
+
 			'[match~="quoted[][]"]'    => array( '[match~="quoted[][]"]', 'match', WP_CSS_Attribute_Selector::MATCH_ONE_OF_EXACT, 'quoted[][]', null, '' ),
 			"[match$='quoted!{}']"     => array( "[match$='quoted!{}']", 'match', WP_CSS_Attribute_Selector::MATCH_SUFFIXED_BY, 'quoted!{}', null, '' ),
 			"[match*='quoted's]"       => array( "[match*='quoted's]", 'match', WP_CSS_Attribute_Selector::MATCH_CONTAINS, 'quoted', WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE, '' ),
@@ -332,8 +336,6 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 			'Invalid: [att=val '       => array( '[att=val ' ),
 			'Invalid: [att i]'         => array( '[att i]' ),
 			'Invalid: [att s]'         => array( '[att s]' ),
-			'Invalid: [att="val" I]'   => array( '[att="val" I]' ),
-			'Invalid: [att="val" S]'   => array( '[att="val" S]' ),
 			"Invalid: [att='val\\n']"  => array( "[att='val\n']" ),
 			'Invalid: [att=val i '     => array( '[att=val i ' ),
 		);
@@ -371,17 +373,21 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	 * @ticket TBD
 	 */
 	public function test_parse_complex_selector() {
-		$input  = 'el.foo#bar[baz=quux] > .child , rest';
+		$input  = 'el1 > .child#bar[baz=quux] , rest';
 		$offset = 0;
 		$sel    = WP_CSS_Complex_Selector::parse( $input, $offset );
 
 		$this->assertSame( 3, count( $sel->selectors ) );
-		$this->assertNotNull( $sel->selectors[0]->type_selector );
-		$this->assertSame( 3, count( $sel->selectors[0]->subclass_selectors ) );
+
+		$this->assertSame( 'el1', $sel->selectors[2]->type_selector->ident );
+		$this->assertNull( $sel->selectors[2]->subclass_selectors );
+
 		$this->assertSame( WP_CSS_Complex_Selector::COMBINATOR_CHILD, $sel->selectors[1] );
-		$this->assertNull( $sel->selectors[2]->type_selector );
-		$this->assertSame( 1, count( $sel->selectors[2]->subclass_selectors ) );
-		$this->assertSame( 'child', $sel->selectors[2]->subclass_selectors[0]->ident );
+
+		$this->assertSame( 3, count( $sel->selectors[0]->subclass_selectors ) );
+		$this->assertNull( $sel->selectors[0]->type_selector );
+		$this->assertSame( 3, count( $sel->selectors[0]->subclass_selectors ) );
+		$this->assertSame( 'child', $sel->selectors[0]->subclass_selectors[0]->ident );
 
 		$this->assertSame( ', rest', substr( $input, $offset ) );
 	}
@@ -408,7 +414,7 @@ class Tests_HtmlApi_WpCssSelectors extends WP_UnitTestCase {
 	 * @ticket TBD
 	 */
 	public function test_parse_selector_list() {
-		$input  = 'el.foo#bar[baz=quux] .descendent , rest';
+		$input  = 'el1 el2 el.foo#bar[baz=quux], rest';
 		$result = WP_CSS_Selector_List::from_selectors( $input );
 		$this->assertNotNull( $result );
 	}
