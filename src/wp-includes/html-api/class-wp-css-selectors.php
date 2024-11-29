@@ -707,6 +707,10 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser implements 
 			return true;
 		}
 
+		if ( true === $att_value ) {
+			$att_value = '';
+		}
+
 		$case_insensitive = self::MODIFIER_CASE_INSENSITIVE === $this->modifier;
 
 		switch ( $this->matcher ) {
