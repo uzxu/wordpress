@@ -390,9 +390,9 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CS
 				0 === $codepoint_value ||
 				$codepoint_value > self::UTF8_MAX_CODEPOINT_VALUE ||
 				( 0xD800 <= $codepoint_value && $codepoint_value <= 0xDFFF )
-			) ?
-				"\u{FFFD}" :
-				mb_chr( $codepoint_value, 'UTF-8' );
+			)
+				? "\u{FFFD}"
+				: mb_chr( $codepoint_value, 'UTF-8' );
 
 			$offset += $hex_length;
 
@@ -582,9 +582,9 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
 
 	public function matches( WP_HTML_Processor $processor ): bool {
 		$case_insensitive = method_exists( $processor, 'is_quirks_mode' ) && $processor->is_quirks_mode();
-		return $case_insensitive ?
-			0 === strcasecmp( $processor->get_attribute( 'id' ), $this->ident ) :
-			$processor->get_attribute( 'id' ) === $this->ident;
+		return $case_insensitive
+			? 0 === strcasecmp( $processor->get_attribute( 'id' ), $this->ident )
+			: $processor->get_attribute( 'id' ) === $this->ident;
 	}
 }
 
@@ -693,9 +693,9 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 
 		switch ( $this->matcher ) {
 			case self::MATCH_EXACT:
-				return $case_insensitive ?
-					0 === strcasecmp( $att_value, $this->value ) :
-					$att_value === $this->value;
+				return $case_insensitive
+					? 0 === strcasecmp( $att_value, $this->value )
+					: $att_value === $this->value;
 
 			case self::MATCH_ONE_OF_EXACT:
 				// @todo
@@ -704,9 +704,9 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 			case self::MATCH_EXACT_OR_EXACT_WITH_HYPHEN:
 				// Attempt the full match first
 				if (
-					$case_insensitive ?
-					0 === strcasecmp( $att_value, $this->value ) :
-					$att_value === $this->value
+					$case_insensitive
+						? 0 === strcasecmp( $att_value, $this->value )
+						: $att_value === $this->value
 				) {
 					return true;
 				}
@@ -1017,13 +1017,16 @@ final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
 		}
 
 		$next_char = $input[ $offset ];
-		return '.' === $next_char ?
-			WP_CSS_Class_Selector::parse( $input, $offset ) : (
-			'#' === $next_char ?
-			WP_CSS_ID_Selector::parse( $input, $offset ) : (
-			'[' === $next_char ?
-			WP_CSS_Attribute_Selector::parse( $input, $offset ) :
-			null ) );
+		return '.' === $next_char
+			? WP_CSS_Class_Selector::parse( $input, $offset )
+			: (
+				'#' === $next_char
+				? WP_CSS_ID_Selector::parse( $input, $offset )
+				: ( '[' === $next_char
+					? WP_CSS_Attribute_Selector::parse( $input, $offset )
+					: null
+				)
+			);
 	}
 }
 
