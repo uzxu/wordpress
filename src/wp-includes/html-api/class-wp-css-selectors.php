@@ -962,9 +962,11 @@ final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
 				return false;
 			}
 		}
-		foreach ( $this->subclass_selectors as $subclass_selector ) {
-			if ( ! $subclass_selector->matches( $processor ) ) {
-				return false;
+		if ( null !== $this->subclass_selectors ) {
+			foreach ( $this->subclass_selectors as $subclass_selector ) {
+				if ( ! $subclass_selector->matches( $processor ) ) {
+					return false;
+				}
 			}
 		}
 		return true;
