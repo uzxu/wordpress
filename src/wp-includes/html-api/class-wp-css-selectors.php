@@ -77,7 +77,7 @@
  * @see {@link https://www.w3.org/TR/selectors-4/}
  *
  */
-class WP_CSS_Selector_List implements IWP_CSS_Selector_Matcher {
+class WP_CSS_Selector_List extends WP_CSS_Selector_Parser implements IWP_CSS_Selector_Matcher {
 	public function matches( WP_HTML_Processor $processor ): bool {
 		if ( $processor->get_token_type() !== '#tag' ) {
 			return false;
@@ -91,8 +91,14 @@ class WP_CSS_Selector_List implements IWP_CSS_Selector_Matcher {
 		return false;
 	}
 
+	/**
+	 * @var array<WP_CSS_Complex_Selector>
+	 */
 	private $selectors;
 
+	/**
+	 * @param array<WP_CSS_Complex_Selector> $selectors
+	 */
 	private function __construct( array $selectors ) {
 		$this->selectors = $selectors;
 	}
@@ -122,7 +128,7 @@ class WP_CSS_Selector_List implements IWP_CSS_Selector_Matcher {
 		$input = trim( $input, " \t\r\n\r" );
 
 		if ( '' === $input ) {
-			null;
+			return null;
 		}
 
 		/*
@@ -144,7 +150,7 @@ class WP_CSS_Selector_List implements IWP_CSS_Selector_Matcher {
 		if ( null === $selector ) {
 			return null;
 		}
-		WP_CSS_Selector_Parser::parse_whitespace( $input, $offset );
+		self::parse_whitespace( $input, $offset );
 
 		$selectors = array( $selector );
 		while ( $offset < strlen( $input ) ) {
@@ -153,16 +159,16 @@ class WP_CSS_Selector_List implements IWP_CSS_Selector_Matcher {
 				return null;
 			}
 			++$offset;
-			WP_CSS_Selector_Parser::parse_whitespace( $input, $offset );
+			self::parse_whitespace( $input, $offset );
 			$selector = WP_CSS_Complex_Selector::parse( $input, $offset );
 			if ( null === $selector ) {
 				return null;
 			}
 			$selectors[] = $selector;
-			WP_CSS_Selector_Parser::parse_whitespace( $input, $offset );
+			self::parse_whitespace( $input, $offset );
 		}
 
-		return new WP_CSS_Selector_List( $selectors );
+		return new self( $selectors );
 	}
 }
 
@@ -180,7 +186,7 @@ interface IWP_CSS_Selector_Parser {
 	public static function parse( string $input, int &$offset );
 }
 
-abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
+abstract class WP_CSS_Selector_Parser {
 	const UTF8_MAX_CODEPOINT_VALUE = 0x10FFFF;
 	const WHITESPACE_CHARACTERS    = " \t\r\n\f";
 
@@ -216,7 +222,6 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CS
 
 		if ( null === $result ) {
 			return null;
-			$offset = $updated_offset;
 		}
 
 		$offset = $updated_offset;
@@ -263,8 +268,8 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CS
 				continue;
 			} elseif ( self::is_ident_codepoint( $input, $offset ) ) {
 				// @todo this should append and advance the correct number of bytes.
-				$ident  .= $input[ $offset ];
-				$offset += 1;
+				$ident .= $input[ $offset ];
+				++$offset;
 				continue;
 			}
 			break;
@@ -378,6 +383,10 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CS
 	 * >   This is a parse error. Return U+FFFD REPLACEMENT CHARACTER (�).
 	 * > anything else
 	 * >   Return the current input code point.
+	 *
+	 * @param string $input
+	 * @param int $offset
+	 * @return string|null
 	 */
 	protected static function consume_escaped_codepoint( $input, &$offset ): ?string {
 		$hex_length = strspn( $input, '0123456789abcdefABCDEF', $offset, 6 );
@@ -558,7 +567,8 @@ abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CS
 	}
 }
 
-final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
+final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
+
 	/** @var string */
 	public $ident;
 
@@ -591,7 +601,7 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser {
 	}
 }
 
-final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
+final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
 	public function matches( WP_HTML_Processor $processor ): bool {
 		return (bool) $processor->has_class( $this->ident );
 	}
@@ -629,7 +639,7 @@ final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser {
 	}
 }
 
-final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser {
+final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
 	public function matches( WP_HTML_Processor $processor ): bool {
 		if ( '*' === $this->ident ) {
 			return true;
@@ -681,7 +691,7 @@ final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser {
 	}
 }
 
-final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
+final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
 	public function matches( WP_HTML_Processor $processor ): bool {
 		$att_value = $processor->get_attribute( $this->name );
 		if ( null === $att_value ) {
@@ -990,7 +1000,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
  *
  * > <compound-selector> = [ <type-selector>? <subclass-selector>* ]!
  */
-final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
+final class WP_CSS_Selector extends WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
 	public function matches( WP_HTML_Processor $processor ): bool {
 		if ( $this->type_selector ) {
 			if ( ! $this->type_selector->matches( $processor ) ) {
@@ -1013,6 +1023,10 @@ final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
 	/** @var array<WP_CSS_ID_Selector|WP_CSS_Class_Selector|WP_CSS_Attribute_Selector>|null */
 	public $subclass_selectors;
 
+	/**
+	 * @param WP_CSS_Type_Selector|null $type_selector
+	 * @param array<WP_CSS_ID_Selector|WP_CSS_Class_Selector|WP_CSS_Attribute_Selector> $subclass_selectors
+	 */
 	private function __construct( ?WP_CSS_Type_Selector $type_selector, array $subclass_selectors ) {
 		$this->type_selector      = $type_selector;
 		$this->subclass_selectors = array() === $subclass_selectors ? null : $subclass_selectors;
@@ -1071,7 +1085,7 @@ final class WP_CSS_Selector extends WP_CSS_Selector_Parser {
  *
  * > <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ]*
  */
-final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
+final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
 	public function matches( WP_HTML_Processor $processor ): bool {
 		if ( count( $this->selectors ) === 1 ) {
 			return $this->selectors[0]->matches( $processor );
@@ -1091,6 +1105,7 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 	 * This only looks at breadcrumbs and can therefore only support type selectors.
 	 *
 	 * @param array<WP_CSS_Selector|self::COMBINATOR_*> $selectors
+	 * @param array<string> $breadcrumbs
 	 */
 	private function explore_matches( array $selectors, array $breadcrumbs ): bool {
 		if ( array() === $selectors ) {
@@ -1139,10 +1154,13 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser {
 	 * In reverse order to match the current element and then work up the tree.
 	 * Any non-final selector is a type selector.
 	 *
-	 * @var array<WP_CSS_Selector>
+	 * @var array<WP_CSS_Selector|self::COMBINATOR_*>
 	 */
 	public $selectors = array();
 
+	/**
+	 * @param array<WP_CSS_Selector|self::COMBINATOR_*> $selectors
+	 */
 	private function __construct( array $selectors ) {
 		$this->selectors = array_reverse( $selectors );
 	}
