@@ -180,9 +180,10 @@ interface IWP_CSS_Selector_Parser {
 
 abstract class WP_CSS_Selector_Parser implements IWP_CSS_Selector_Parser, IWP_CSS_Selector_Matcher {
 	const UTF8_MAX_CODEPOINT_VALUE = 0x10FFFF;
+	const WHITESPACE_CHARACTERS    = " \t\r\n\f";
 
 	public static function parse_whitespace( string $input, int &$offset ): bool {
-		$length   = strspn( $input, " \t\r\n\f", $offset );
+		$length   = strspn( $input, self::WHITESPACE_CHARACTERS, $offset );
 		$advanced = $length > 0;
 		$offset  += $length;
 		return $advanced;
@@ -698,8 +699,16 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 					: $att_value === $this->value;
 
 			case self::MATCH_ONE_OF_EXACT:
-				// @todo
-				throw new Exception( 'One of attribute matching is not supported yet.' );
+				foreach ( $this->whitespace_delimited_list( $att_value ) as $val ) {
+					if (
+						$case_insensitive
+							? 0 === strcasecmp( $val, $this->value )
+							: $val === $this->value
+					) {
+						return true;
+					}
+				}
+				return false;
 
 			case self::MATCH_EXACT_OR_EXACT_WITH_HYPHEN:
 				// Attempt the full match first
@@ -727,10 +736,32 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser {
 
 			case self::MATCH_CONTAINS:
 				return false !== (
-					$case_insensitive ?
-						stripos( $att_value, $this->value ) :
-						strpos( $att_value, $this->value )
+					$case_insensitive
+						? stripos( $att_value, $this->value )
+						: strpos( $att_value, $this->value )
 				);
+		}
+	}
+
+	/**
+	 * @param string $input
+	 *
+	 * @return Generator<string>
+	 */
+	private function whitespace_delimited_list( string $input ): Generator {
+		$offset = strspn( $input, self::WHITESPACE_CHARACTERS );
+
+		while ( $offset < strlen( $input ) ) {
+			// Find the byte length until the next boundary.
+			$length = strcspn( $input, self::WHITESPACE_CHARACTERS, $offset );
+			if ( 0 === $length ) {
+				return;
+			}
+
+			$value   = substr( $input, $offset, $length );
+			$offset += $length + strspn( $input, self::WHITESPACE_CHARACTERS, $offset + $length );
+
+			yield $value;
 		}
 	}
 
