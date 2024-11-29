@@ -72,7 +72,7 @@ function wp_is_https_supported() {
 
 	// If option has never been set by the Cron hook before, run it on-the-fly as fallback.
 	if ( false === $https_detection_errors ) {
-		wp_update_https_detection_errors();
+		wp_get_https_detection_errors();
 
 		$https_detection_errors = get_option( 'https_detection_errors' );
 	}
