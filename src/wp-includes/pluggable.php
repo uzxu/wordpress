@@ -2515,7 +2515,8 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		foreach ( array( 'auth', 'secure_auth', 'logged_in', 'nonce' ) as $key ) {
 			foreach ( array( 'key', 'salt' ) as $second ) {
 				$const = strtoupper( "{$key}_{$second}" );
-				if ( ! defined( $const ) || true === $duplicated_keys[ constant( $const ) ] ) {
+
+				if ( ! defined( $const ) || ( isset( $duplicated_keys[ constant( $const ) ] ) && true === $duplicated_keys[ constant( $const ) ] ) ) {
 					$options_to_prime[] = "{$key}_{$second}";
 				}
 			}
