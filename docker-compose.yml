@@ -82,7 +82,7 @@ services:
     command: ${LOCAL_DB_AUTH_OPTION-}
 
     healthcheck:
-      test: [ "CMD-SHELL", "if [ \"$LOCAL_DB_TYPE\" = \"mariadb\" ]; then mariadb-admin ping -h localhost; else mysqladmin ping -h localhost; fi" ]
+      test: [ "CMD-SHELL", "if [ \"$LOCAL_DB_TYPE\" = \"mariadb\" ] && [ \"$LOCAL_DB_VERSION\" != \"5.5\" ] && [ \"$LOCAL_DB_VERSION\" != \"10.0\" ] && [ \"$LOCAL_DB_VERSION\" != \"10.1\" ] && [ \"$LOCAL_DB_VERSION\" != \"10.2\" ] && [ \"$LOCAL_DB_VERSION\" != \"10.3\" ]; then mariadb-admin ping -h localhost; else mysqladmin ping -h localhost; fi" ]
       timeout: 5s
       interval: 5s
       retries: 10

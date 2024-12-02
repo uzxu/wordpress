@@ -86,10 +86,15 @@ jobs:
             db-version: '8.4'
           - php: '7.3'
             db-version: '8.4'
+          # MySQL 9.0+ will not work on PHP <= 7.3 because mysql_native_password was removed.
           - php: '7.2'
             db-version: '9.0'
           - php: '7.3'
             db-version: '9.0'
+          - php: '7.2'
+            db-version: '9.1'
+          - php: '7.3'
+            db-version: '9.1'
 
     services:
       database:

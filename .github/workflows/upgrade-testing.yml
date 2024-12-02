@@ -33,7 +33,7 @@ permissions: {}
 
 jobs:
   # Spawns upgrade testing from WordPress 6.x versions on PHP 8.x with MySQL.
-  upgrade-tests-wp-6x-php-8x-mysql:
+  upgrade-tests-wp-6x-php-8x-mysql-pt-1:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -45,10 +45,34 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
-        wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
+        wp: [ '6.5', '6.6', '6.7' ]
         multisite: [ false, true ]
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
 
+  # Spawns upgrade testing from WordPress 6.x versions on PHP 8.x with MySQL.
+  upgrade-tests-wp-6x-php-8x-mysql-pt-2:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        php: [ '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
+        wp: [ '6.0', '6.1', '6.2', '6.3', '6.4' ]
+        multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -71,7 +95,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
         wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7' ]
         multisite: [ false, true ]
 
@@ -80,6 +104,10 @@ jobs:
             db-version: '8.4'
           - php: '7.3'
             db-version: '8.4'
+          - php: '7.2'
+            db-version: '9.1'
+          - php: '7.3'
+            db-version: '9.1'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -100,7 +128,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
         wp: [ '5.0', '5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
         multisite: [ false, true ]
 
@@ -109,6 +137,10 @@ jobs:
             db-version: '8.4'
           - php: '7.3'
             db-version: '8.4'
+          - php: '7.2'
+            db-version: '9.1'
+          - php: '7.3'
+            db-version: '9.1'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -123,7 +155,7 @@ jobs:
   # WordPress 5.0-5.2 are excluded from PHP 8+ testing because of the following fatal errors:
   # - Use of __autoload().
   # - array/string offset with curly braces.
-  upgrade-tests-wp-5x-php-8x-mysql:
+  upgrade-tests-wp-5x-php-8x-mysql-pt-1:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -133,8 +165,35 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
-        wp: [ '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
+        wp: [ '5.3', '5.4', '5.5' ]
+        multisite: [ false, true ]
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  # Spawns upgrade testing from WordPress 5.x versions on PHP 8.x with MySQL.
+  #
+  # WordPress 5.0-5.2 are excluded from PHP 8+ testing because of the following fatal errors:
+  # - Use of __autoload().
+  # - array/string offset with curly braces.
+  upgrade-tests-wp-5x-php-8x-mysql-pt-2:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        php: [ '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
+        wp: [ '5.6', '5.7', '5.8', '5.9' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -156,7 +215,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
         wp: [ '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9' ]
         multisite: [ false, true ]
 
@@ -165,6 +224,10 @@ jobs:
             db-version: '8.4'
           - php: '7.3'
             db-version: '8.4'
+          - php: '7.2'
+            db-version: '9.1'
+          - php: '7.3'
+            db-version: '9.1'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -189,7 +252,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
         wp: [ '4.1', '4.2', '4.3', '4.4', '4.5' ]
         multisite: [ false, true ]
     with:
@@ -207,7 +270,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ upgrade-tests-wp-6x-php-8x-mysql, upgrade-tests-wp-6x-php-7x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-wp-4x-php-7x-mysql, upgrade-tests-wp-4x-php-8x-mysql ]
+    needs: [ upgrade-tests-wp-6x-php-8x-mysql-pt-1, upgrade-tests-wp-6x-php-8x-mysql-pt-2, upgrade-tests-wp-6x-php-7x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql-pt-1, upgrade-tests-wp-5x-php-8x-mysql-pt-2, upgrade-tests-wp-4x-php-7x-mysql, upgrade-tests-wp-4x-php-8x-mysql ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
