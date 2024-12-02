@@ -3016,7 +3016,9 @@ function antispambot( $email_address, $hex_encoding = 0 ) {
 	for ( $i = 0, $len = strlen( $email_address ); $i < $len; $i++ ) {
 		$j = rand( 0, 1 + $hex_encoding );
 
-		if ( 0 === $j ) {
+		if ( ord( $email_address[ $i ] ) > 127 ) {
+			$email_no_spam_address .= $email_address[ $i ];
+		} elseif ( 0 === $j ) {
 			$email_no_spam_address .= '&#' . ord( $email_address[ $i ] ) . ';';
 		} elseif ( 1 === $j ) {
 			$email_no_spam_address .= $email_address[ $i ];
