@@ -4254,6 +4254,10 @@ img {
 		display: inline-block;
 		padding: 2px;
 	}
+
+	.wp-filter {
+		padding-top: 10px;
+	}
 }
 
 @media screen and (max-width: 320px) {
@@ -4262,5 +4266,9 @@ img {
 	#network_dashboard_right_now .subsubsub {
 		font-size: 14px;
 		text-align: left;
+	}
+
+	.wp-filter {
+		padding-top: 0;
 	}
 }
