@@ -1039,17 +1039,25 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  *
  * @since 6.6.0
  * @since 6.7.0 Injects the `theme` attribute into Template Part blocks, even if no hooked blocks are registered.
+ * @since 6.8.0 Have the `$context` parameter default to `null`, in which case the current post will be used.
  * @access private
  *
- * @param string                          $content  Serialized content.
- * @param WP_Block_Template|WP_Post|array $context  A block template, template part, `wp_navigation` post object,
- *                                                  or pattern that the blocks belong to.
- * @param callable                        $callback A function that will be called for each block to generate
- *                                                  the markup for a given list of blocks that are hooked to it.
- *                                                  Default: 'insert_hooked_blocks'.
+ * @param string                               $content  Serialized content.
+ * @param WP_Block_Template|WP_Post|array|null $context  A block template, template part, `wp_navigation` post object,
+ *                                                       or pattern that the blocks belong to. If set to `null`, the
+ *                                                       current post is used.
+ *                                                       Default: `null`.
+ * @param callable                             $callback A function that will be called for each block to generate
+ *                                                       the markup for a given list of blocks that are hooked to it.
+ *                                                       Default: 'insert_hooked_blocks'.
  * @return string The serialized markup.
  */
-function apply_block_hooks_to_content( $content, $context, $callback = 'insert_hooked_blocks' ) {
+function apply_block_hooks_to_content( $content, $context = null, $callback = 'insert_hooked_blocks' ) {
+	// Default to the current post if no context is provided.
+	if ( null === $context ) {
+		$context = get_post();
+	}
+
 	$hooked_blocks = get_hooked_blocks();
 
 	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';

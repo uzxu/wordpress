@@ -192,6 +192,7 @@ add_filter( 'the_title', 'wptexturize' );
 add_filter( 'the_title', 'convert_chars' );
 add_filter( 'the_title', 'trim' );
 
+add_filter( 'the_content', 'apply_block_hooks_to_content', 8 ); // BEFORE do_blocks().
 add_filter( 'the_content', 'do_blocks', 9 );
 add_filter( 'the_content', 'wptexturize' );
 add_filter( 'the_content', 'convert_smilies', 20 );
