@@ -716,6 +716,7 @@
 
 	.about__header-navigation {
 		display: block;
+		margin-top: calc(var(--gap) / 2);
 	}
 
 	.about__header-navigation .nav-tab {
