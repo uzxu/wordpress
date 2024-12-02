@@ -174,7 +174,7 @@
 
 .media-item .pinkynail {
 	float: left;
-	margin: 0 10px 0 0;
+	margin: 14px;
 	max-height: 70px;
 	max-width: 70px;
 }
@@ -1266,7 +1266,7 @@ audio, video {
 	.edit-attachment-frame textarea {
 		line-height: 1.5;
 	}
-	
+
 	.wp_attachment_details label[for="content"] {
 		font-size: 14px;
 		line-height: 1.5;
