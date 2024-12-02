@@ -2244,4 +2244,56 @@ HTML;
 
 		return $this->text_array_to_dataprovider( $required_kses_globals );
 	}
+
+	/**
+	 * Tests that the target attribute is preserved in the user description context.
+	 *
+	 * @ticket 12056
+	 */
+	public function test_target_attribute_preserved_in_user_description() {
+		$allowed = wp_kses_allowed_html( 'user_description' );
+		$this->assertTrue( isset( $allowed['a']['target'] ), 'Target attribute not allowed in user description' );
+
+		$input    = '<a href="https://example.com" target="_blank">Example</a>';
+		$expected = '<a href="https://example.com" target="_blank">Example</a>';
+		$this->assertEquals( $expected, wp_kses( $input, 'user_description' ) );
+	}
+
+	/**
+	 * Tests that the target attribute is preserved in the term description context.
+	 *
+	 * @ticket 12056
+	 */
+	public function test_target_attribute_preserved_in_term_description() {
+		$allowed = wp_kses_allowed_html( 'pre_term_description' );
+		$this->assertTrue( isset( $allowed['a']['target'] ), 'Target attribute not allowed in term description' );
+
+		$input    = '<a href="https://example.com" target="_blank">Example</a>';
+		$expected = '<a href="https://example.com" target="_blank">Example</a>';
+		$this->assertEquals( $expected, wp_kses( $input, 'pre_term_description' ) );
+	}
+
+	/**
+	 * Tests that the target attribute is preserved in the user description context along with other attributes.
+	 *
+	 * @ticket 12056
+	 */
+	public function test_target_attribute_preserved_in_user_description_with_other_attributes() {
+		$allowed = wp_kses_allowed_html( 'user_description' );
+		$this->assertTrue( isset( $allowed['a']['target'] ), 'Target attribute not allowed in user description' );
+		$this->assertTrue( isset( $allowed['a']['href'] ), 'href attribute not allowed in user description' );
+		$this->assertTrue( isset( $allowed['a']['rel'] ), 'rel attribute not allowed in user description' );
+	}
+
+	/**
+	 * Tests that the target attribute is preserved in the term description context along with other attributes.
+	 *
+	 * @ticket 12056
+	 */
+	public function test_target_attribute_preserved_in_term_description_with_other_attributes() {
+		$allowed = wp_kses_allowed_html( 'pre_term_description' );
+		$this->assertTrue( isset( $allowed['a']['target'] ), 'target attribute not allowed in term description' );
+		$this->assertTrue( isset( $allowed['a']['href'] ), 'href attribute not allowed in term description' );
+		$this->assertTrue( isset( $allowed['a']['rel'] ), 'rel attribute not allowed in term description' );
+	}
 }
