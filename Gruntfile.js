@@ -1041,6 +1041,22 @@ module.exports = function(grunt) {
 				dest: SOURCE_DIR
 			}
 		},
+		cwebp: {
+			dynamic: {
+				options: {
+					q: 80
+				},
+				files: [{
+					expand: true,
+					cwd: SOURCE_DIR,
+					src: [
+						'wp-{admin,includes}/images/**/*.{webp}',
+						'wp-content/themes/**/*.{webp}'
+					],
+					dest: 'SOURCE_DIR'
+				}],
+			}
+		},
 		replace: {
 			'emoji-regex': {
 				options: {
@@ -1308,7 +1324,8 @@ module.exports = function(grunt) {
 	} );
 
 	grunt.registerTask( 'precommit:image', [
-		'imagemin:core'
+		'imagemin:core',
+		'cwebp:dynamic'
 	] );
 
 	grunt.registerTask( 'precommit:js', [
