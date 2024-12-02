@@ -1893,6 +1893,11 @@ function get_admin_page_title() {
 		}
 	}
 
+	if ( empty( $title ) ) {
+		$title = '';
+		return $title;
+	}
+
 	return $title;
 }
 
