@@ -545,6 +545,11 @@ class WP {
 			if ( $post && pings_open( $post ) ) {
 				$headers['X-Pingback'] = get_bloginfo( 'pingback_url', 'display' );
 			}
+
+			// Send nocache headers for password protected posts to avoid reverse-proxy or CDNs caching.
+			if ( post_password_required( $post ) ) {
+				$headers = array_merge( $headers, wp_get_nocache_headers() );
+			}
 		}
 
 		/**
