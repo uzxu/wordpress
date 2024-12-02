@@ -273,6 +273,45 @@ class WP_Block_Type {
 	);
 
 	/**
+	 * Experimental to stable block supports map.
+	 *
+	 * @since 6.8.0
+	 * @var array
+	 */
+	private $experimental_supports_map = array( '__experimentalBorder' => 'border' );
+
+	/**
+	 * Map of shared experimental support properties to stable.
+	 *
+	 * This map relates to experimental block support flags that are
+	 * across multiple different block supports.
+	 *
+	 * @since 6.8.0
+	 * @var array
+	 */
+	private $common_experimental_support_properties = array(
+		'__experimentalDefaultControls'   => 'defaultControls',
+		'__experimentalSkipSerialization' => 'skipSerialization',
+	);
+
+	/**
+	 * Experimental to stable block supports properties map.
+	 *
+	 * @since 6.8.0
+	 * @var array
+	 */
+	private $experimental_support_properties = array(
+		'typography' => array(
+			'__experimentalFontFamily'     => 'fontFamily',
+			'__experimentalFontStyle'      => 'fontStyle',
+			'__experimentalFontWeight'     => 'fontWeight',
+			'__experimentalLetterSpacing'  => 'letterSpacing',
+			'__experimentalTextDecoration' => 'textDecoration',
+			'__experimentalTextTransform'  => 'textTransform',
+		),
+	);
+
+	/**
 	 * Attributes supported by every block.
 	 *
 	 * @since 6.0.0 Added `lock`.
@@ -572,6 +611,11 @@ class WP_Block_Type {
 		 */
 		$args = apply_filters( 'register_block_type_args', $args, $this->name );
 
+		// Stabilize experimental block supports.
+		if ( isset( $args['supports'] ) && is_array( $args['supports'] ) ) {
+			$args['supports'] = $this->stabilize_supports( $args['supports'] );
+		}
+
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;
 		}
@@ -633,5 +677,113 @@ class WP_Block_Type {
 		 * @param WP_Block_Type $block_type   The full block type object.
 		 */
 		return apply_filters( 'get_block_type_uses_context', $this->uses_context, $this );
+	}
+
+	/**
+	 * Stabilize experimental block supports. This method transforms experimental
+	 * block supports into their stable counterparts, by renaming the keys to the
+	 * stable versions.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $supports The block supports array from within the block type arguments.
+	 * @return array The stabilized block supports array.
+	 */
+	private function stabilize_supports( $supports ) {
+		$done             = array();
+		$updated_supports = array();
+
+		foreach ( $supports as $support => $config ) {
+			/*
+			 * If this support config has already been stabilized, skip it.
+			 * A stable support key occurring after an experimental key, gets
+			 * stabilized then so that the two configs can be merged effectively.
+			 */
+			if ( isset( $done[ $support ] ) ) {
+				continue;
+			}
+
+			$stable_support_key = $this->experimental_supports_map[ $support ] ?? $support;
+
+			/*
+			 * Use the support's config as is when it's not in need of stabilization.
+			 *
+			 * A support does not need stabilization if:
+			 * - The support key doesn't need stabilization AND
+			 * - Either:
+			 *     - The config isn't an array, so can't have experimental properties OR
+			 *     - The config is an array but has no experimental properties to stabilize.
+			 */
+			if ( $support === $stable_support_key &&
+				( ! is_array( $config ) ||
+					(
+						! isset( $this->experimental_support_properties[ $stable_support_key ] ) &&
+						empty( array_intersect_key( $this->common_experimental_support_properties, $config ) )
+					)
+				)
+			) {
+				$updated_supports[ $support ] = $config;
+				continue;
+			}
+
+			$stabilize_config = function ( $unstable_config, $stable_support_key ) {
+				$stable_config = array();
+				foreach ( $unstable_config as $key => $value ) {
+					// Get stable key from support-specific map, common properties map, or keep original.
+					$stable_key = $this->experimental_support_properties[ $stable_support_key ][ $key ] ??
+							$this->common_experimental_support_properties[ $key ] ??
+							$key;
+
+					$stable_config[ $stable_key ] = $value;
+				}
+				return $stable_config;
+			};
+
+			// Stabilize the config value.
+			$stable_config = is_array( $config ) ? $stabilize_config( $config, $stable_support_key ) : $config;
+
+			/*
+			 * If a plugin overrides the support config with the `register_block_type_args`
+			 * filter, both experimental and stable configs may be present. In that case,
+			 * use the order keys are defined in to determine the final value.
+			 *    - If config is an array, merge the arrays in their order of definition.
+			 *    - If config is not an array, use the value defined last.
+			 *
+			 * The reason for preferring the last defined key is that after filters
+			 * are applied, the last inserted key is likely the most up-to-date value.
+			 * We cannot determine with certainty which value was "last modified" so
+			 * the insertion order is the best guess. The extreme edge case of multiple
+			 * filters tweaking the same support property will become less over time as
+			 * extenders migrate existing blocks and plugins to stable keys.
+			 */
+			if ( $support !== $stable_support_key && isset( $supports[ $stable_support_key ] ) ) {
+				$key_positions      = array_flip( array_keys( $supports ) );
+				$experimental_first =
+				( $key_positions[ $support ] ?? PHP_INT_MAX ) <
+				( $key_positions[ $stable_support_key ] ?? PHP_INT_MAX );
+
+				if ( is_array( $supports[ $stable_support_key ] ) ) {
+					/*
+					 * To merge the alternative support config effectively, it also needs to be
+					 * stabilized before merging to keep stabilized and experimental flags in
+					 * sync.
+					 */
+					$supports[ $stable_support_key ] = $stabilize_config( $supports[ $stable_support_key ], $stable_support_key );
+					$stable_config                   = $experimental_first
+					? array_merge( $stable_config, $supports[ $stable_support_key ] )
+					: array_merge( $supports[ $stable_support_key ], $stable_config );
+					// Prevents reprocessing this support as it was merged above.
+					$done[ $stable_support_key ] = true;
+				} else {
+					$stable_config = $experimental_first
+					? $supports[ $stable_support_key ]
+					: $stable_config;
+				}
+			}
+
+			$updated_supports[ $stable_support_key ] = $stable_config;
+		}
+
+		return $updated_supports;
 	}
 }

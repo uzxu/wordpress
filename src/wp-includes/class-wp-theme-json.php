@@ -631,10 +631,10 @@ class WP_Theme_JSON {
 	 * @var string[]
 	 */
 	const BLOCK_SUPPORT_FEATURE_LEVEL_SELECTORS = array(
-		'__experimentalBorder' => 'border',
-		'color'                => 'color',
-		'spacing'              => 'spacing',
-		'typography'           => 'typography',
+		'border'     => 'border',
+		'color'      => 'color',
+		'spacing'    => 'spacing',
+		'typography' => 'typography',
 	);
 
 	/**
