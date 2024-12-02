@@ -347,7 +347,7 @@ p {
 	width: 100%;
 	border-width: 0.0625rem;
 	padding: 0.1875rem 0.3125rem; /* 3px 5px */
-	margin: 0 6px 16px 0;
+	margin-bottom: 16px;
 	min-height: 40px;
 	max-height: none;
 }
